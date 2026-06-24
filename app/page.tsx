@@ -1,25 +1,25 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 /* ─────────────────────────────────────────────
-   IMAGE IMPORTS (add your own in /public/images)
+   IMAGE PATHS — drop your own into /public/images
+   The layout is designed to look great even with
+   missing images (placeholders are built in).
 ───────────────────────────────────────────── */
 const IMAGES = {
+  hero: "/images/noba-hero.jpg",           // your photo, candid preferred
+  building1: "/images/build-1.jpg",        // desk / laptop / workspace
+  building2: "/images/build-2.jpg",        // whiteboard, sketches, anything real
+  building3: "/images/build-3.jpg",        // you with a product, screenshot, etc
   vizo: "/images/vizo.png",
   morungx: "/images/morungx.png",
   evalyze: "/images/evalyze.png",
   anime: "/images/anime.png",
   posturepet: "/images/posturepet.png",
   shepherd: "/images/shepherd.png",
-  avatar1: "/images/avatar1.png",
-  avatar2: "/images/avatar2.png",
-  avatar3: "/images/avatar3.png",
-  avatar4: "/images/avatar4.png",
-  hero: "/images/hero-illustration.png",
-  footerIcon: "/images/footer-icon.png",
-} as const;
+};
 
 /* ─────────────────────────────────────────────
    DATA
@@ -29,28 +29,34 @@ const PROJECTS = [
     id: "vizo",
     image: IMAGES.vizo,
     name: "Vizo AI",
+    issue: "Vol. 01",
     status: "live" as const,
-    desc: "AI-powered STEM tutoring for students aged 13–18. RAG over educational PDFs, KaTeX math rendering, AI chapter summaries, PYQ-based exam prediction, Stripe & Razorpay billing.",
+    lede: "The flagship. AI-powered STEM tutoring for students aged 13–18 across India — built entirely solo from Nagaland.",
+    desc: "RAG over NCERT/CBSE PDFs, KaTeX math rendering, AI chapter summaries with PYQ exam prediction, real billing via Stripe & Razorpay. This is the product I'd want to have had in school.",
     tags: ["Next.js 15", "Supabase", "pgvector", "Gemini 2.5", "CBSE/NCERT/NBSE"],
     cats: ["edtech", "ai"],
-    href: "https://vizo.ai", // replace with real URL
+    href: "https://vizo.ai",
   },
   {
     id: "morungx",
     image: IMAGES.morungx,
     name: "MorungX / NagaShelf",
+    issue: "Vol. 02",
     status: "built" as const,
-    desc: "Student ecosystem for Nagaland — used book marketplace, notes sharing (LearnHub), peerlancing, campus directory, and an LMS with Zoom. Mobile-first for the NE India user base.",
+    lede: "A student ecosystem built specifically for Nagaland — used books, notes sharing, peerlancing, campus directory.",
+    desc: "Mobile-first for the NE India user base. Used book marketplace, LearnHub notes platform, PeerLancer, and an LMS with Zoom integration. Razorpay Route for payout infrastructure.",
     tags: ["Next.js", "Supabase", "Stripe", "Razorpay Route"],
     cats: ["edtech", "marketplace"],
-    href: "https://morungx.com", // replace
+    href: "https://morungx.com",
   },
   {
     id: "evalyze",
     image: IMAGES.evalyze,
     name: "Evalyze",
+    issue: "Vol. 03",
     status: "built" as const,
-    desc: "AI answer sheet grading platform built for Devpost. Teachers upload sheets, Gemini 2.5 Flash evaluates and scores responses. Deployed to Vercel + Render.",
+    lede: "AI answer sheet grader. Teachers upload sheets, Gemini evaluates and scores. Built in a weekend for Devpost.",
+    desc: "MERN stack with Gemini 2.5 Flash doing the heavy lifting. Deployed to Vercel + Render. This is what hackathon pressure produces.",
     tags: ["MERN", "Gemini 2.5", "Vercel", "Render"],
     cats: ["ai"],
     href: "#",
@@ -59,8 +65,10 @@ const PROJECTS = [
     id: "anime",
     image: IMAGES.anime,
     name: "Anime Debate Club",
+    issue: "Vol. 04",
     status: "built" as const,
-    desc: "Real-time blind debate matchmaking. DynamoDB single-table design, later migrated to MongoDB + PostgreSQL for free-tier cost elimination. Live anonymous pairing.",
+    lede: "Real-time blind debate matchmaking. Two strangers, one topic, five minutes. No usernames.",
+    desc: "Started with DynamoDB single-table design for the data model challenge, later migrated to MongoDB + PostgreSQL to eliminate free-tier costs. Live anonymous pairing.",
     tags: ["Real-time", "MongoDB", "PostgreSQL", "DynamoDB"],
     cats: ["fun", "ai"],
     href: "#",
@@ -69,8 +77,10 @@ const PROJECTS = [
     id: "posturepet",
     image: IMAGES.posturepet,
     name: "PosturePet AI",
+    issue: "Vol. 05",
     status: "wip" as const,
-    desc: "Gamified posture detection using TensorFlow.js MoveNet. Pet evolution stages based on posture score, skeleton overlay visualization. Sit up straight to level up your pet.",
+    lede: "Sit up straight and your virtual pet evolves. Slouch and it suffers. Gamified posture detection via webcam.",
+    desc: "TensorFlow.js MoveNet runs the pose estimation entirely in the browser. Skeleton overlay visualization, adaptive difficulty, pet evolution stages. Built because I slouch too much.",
     tags: ["TensorFlow.js", "MoveNet", "Next.js"],
     cats: ["fun", "ai"],
     href: "#",
@@ -79,103 +89,100 @@ const PROJECTS = [
     id: "shepherd",
     image: IMAGES.shepherd,
     name: "ShepherdAI",
+    issue: "Vol. 06",
     status: "built" as const,
-    desc: "Transport operations copilot for community event logistics in Nagaland. Manages sumo/shared taxi coordination, manifest tracking, and route planning with Gemini.",
+    lede: "Transport operations copilot for shared taxi (sumo) coordination and manifest tracking in Nagaland.",
+    desc: "Community event logistics are genuinely chaotic here. This manages sumo/shared taxi coordination, manifest tracking, and route planning — Gemini handles the natural language operations layer.",
     tags: ["Next.js", "MongoDB", "Gemini"],
     cats: ["ai"],
     href: "#",
   },
 ];
 
+const FIELD_NOTES = [
+  {
+    date: "2025",
+    tag: "Behind the build",
+    title: "How I shipped a full RAG pipeline solo in 3 weeks",
+    excerpt: "No team, no office, no senior dev to ask. Just Supabase docs, pgvector cosine similarity math, and a lot of late nights in Nagaland. Here's what actually happened.",
+    readTime: "6 min",
+    img: IMAGES.building1,
+  },
+  {
+    date: "2025",
+    tag: "Founder notes",
+    title: "Building for students who look like me",
+    excerpt: "CBSE, NBSE, shared textbooks, power cuts before exams. The edtech market ignores Northeast India. Vizo AI exists because I lived the problem.",
+    readTime: "4 min",
+    img: IMAGES.building2,
+  },
+  {
+    date: "2025",
+    tag: "Hackathon debrief",
+    title: "Devpost in 48 hours: what I built, what broke, what shipped",
+    excerpt: "Evalyze went from idea to deployed product in a weekend. This is the honest debrief — the part that almost killed the demo, and the part that somehow worked.",
+    readTime: "5 min",
+    img: IMAGES.building3,
+  },
+];
+
 const EXPERIENCE = [
   {
     icon: "🏛️",
-    title: "Founder — Edx Morung / MorungX",
+    title: "Founder — Edx Morung",
     period: "2024 – present",
-    sub: "Sole proprietorship · Nagaland, India",
-    desc: "Registered sole prop building AI-powered edtech for students across CBSE, NCERT, NBSE, IGCSE, IB, and AP curricula. GST/Udyam registered. Razorpay Route for payout infrastructure.",
+    sub: "Registered sole proprietorship · Nagaland, India",
+    desc: "GST/Udyam registered. Building AI-powered edtech for students across CBSE, NCERT, NBSE, IGCSE, IB, and AP curricula. Razorpay Route for payout infrastructure across MorungX products.",
   },
   {
     icon: "📖",
     title: "Technical Author — Node.js Auth Ebook",
     period: "2025",
     sub: "Self-published · Production-grade guide",
-    desc: "Production-grade Node.js authentication ebook with full MERN companion codebase: JWT refresh rotation, Redis blacklisting, BullMQ, and rate limiting.",
+    desc: "Wrote and published a production Node.js authentication guide with a full MERN companion codebase: JWT refresh rotation, Redis blacklisting, BullMQ, rate limiting. The book I wished existed when I started.",
   },
   {
     icon: "🏆",
-    title: "Hackathon Participant",
+    title: "Hackathon Builder",
     period: "2024 – 2025",
-    sub: "Devpost · Moonshot",
-    desc: "Built Evalyze for Devpost. Competing in Moonshot Hackathon with the Negative Results Engine — a zero-to-one idea leveraging existing RAG and embeddings experience.",
+    sub: "Devpost · Moonshot Hackathon",
+    desc: "Built Evalyze for Devpost. Competing in Moonshot with the Negative Results Engine — a zero-to-one research tool that surfaces failed experiments so researchers don't repeat dead ends. Uses existing RAG/embeddings experience.",
   },
   {
     icon: "💻",
     title: "Self-taught Full-stack Developer",
     period: "2023 – present",
     sub: "Learn-by-building approach",
-    desc: "Systematic self-study through React, MongoDB, and backend patterns while shipping production products in parallel. Backend-first with Next.js App Router as primary frontend framework.",
+    desc: "No bootcamp, no CS degree. Systematic self-study through React, MongoDB, and backend patterns while shipping production products in parallel. Backend-first by instinct, Next.js App Router as primary framework.",
   },
 ];
 
-const ROADMAP = [
+const STACK_SECTIONS = [
   {
-    icon: "🧠",
-    title: "Negative Results Engine",
-    status: "active" as const,
-    desc: "Moonshot Hackathon entry — surfaces failed experiments so researchers don't repeat dead ends. RAG + embeddings core.",
+    label: "Frontend",
+    items: ["Next.js 15/16", "React", "TypeScript", "Tailwind CSS", "Framer Motion", "TensorFlow.js"],
   },
   {
-    icon: "🚕",
-    title: "Sumo Booking SaaS",
-    status: "soon" as const,
-    desc: "B2B SaaS for shared taxi booking and manifest management for intercity counter operators in NE India.",
+    label: "Backend & DB",
+    items: ["Supabase", "PostgreSQL", "pgvector", "MongoDB", "DynamoDB", "Redis", "Node.js"],
   },
   {
-    icon: "🖥️",
-    title: "Terminal Portfolio v2",
-    status: "soon" as const,
-    desc: "Gamified OS-aesthetic portfolio — XP/HUD elements, quest-style project cards, dark terminal theme in Next.js.",
+    label: "AI & ML",
+    items: ["Gemini 2.5 Flash", "OpenAI Embeddings", "RAG Pipelines", "pdf-parse", "MoveNet"],
   },
   {
-    icon: "📄",
-    title: "Internship Applications",
-    status: "soon" as const,
-    desc: "Frontend and full-stack Typst resumes targeting remote internship roles. Applications actively in progress.",
+    label: "Infra & Billing",
+    items: ["Vercel", "Render", "Stripe", "Razorpay", "Razorpay Route", "BullMQ"],
   },
-  {
-    icon: "📚",
-    title: "Vizo AI v2",
-    status: "later" as const,
-    desc: "Expand to AP and IB curricula, add voice tutor, improve PYQ prediction accuracy with fine-tuned embeddings.",
-  },
-  {
-    icon: "🤝",
-    title: "Peerlancer Marketplace",
-    status: "later" as const,
-    desc: "Spin up the tutoring and peerlancing marketplace from MorungX as a standalone product with Razorpay Route payouts.",
-  },
-];
-
-const STACK = [
-  "Next.js 15/16", "Supabase", "pgvector", "Gemini 2.5 Flash",
-  "OpenAI Embeddings", "TypeScript", "Stripe", "Razorpay",
-  "MongoDB", "MERN", "TensorFlow.js", "Tailwind CSS",
 ];
 
 const FILTERS = ["All", "Edtech", "AI", "Marketplace", "Fun"] as const;
 type Filter = (typeof FILTERS)[number];
 
-const STATUS_STYLES = {
-  live:  { label: "Live",      bg: "#ECFDF5", color: "#047857" },
-  built: { label: "Built",     bg: "#EEF2FF", color: "#4338CA" },
-  wip:   { label: "WIP",       bg: "#FEF3C7", color: "#B45309" },
-};
-
-const ROADMAP_STYLES = {
-  active: { label: "Active", bg: "#ECFDF5", color: "#047857" },
-  soon:   { label: "Soon",   bg: "#EEF2FF", color: "#4338CA" },
-  later:  { label: "Later",  bg: "#F4F4F5", color: "#52525B" },
+const STATUS_META = {
+  live:  { label: "Live now",  color: "#047857", bg: "#ECFDF5", dot: "#10B981" },
+  built: { label: "Shipped",   color: "#1D4ED8", bg: "#EFF6FF", dot: "#3B82F6" },
+  wip:   { label: "In progress", color: "#B45309", bg: "#FFFBEB", dot: "#F59E0B" },
 };
 
 /* ─────────────────────────────────────────────
@@ -183,198 +190,188 @@ const ROADMAP_STYLES = {
 ───────────────────────────────────────────── */
 export default function Page() {
   const [activeFilter, setActiveFilter] = useState<Filter>("All");
-  const [showRoadmap, setShowRoadmap] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
 
-  const filteredProjects = PROJECTS.filter((p) =>
-    activeFilter === "All" || p.cats.includes(activeFilter.toLowerCase())
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const filteredProjects = PROJECTS.filter(
+    (p) => activeFilter === "All" || p.cats.includes(activeFilter.toLowerCase())
   );
 
-  const handleNavClick = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-      e.preventDefault();
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-      }
-    },
-    []
-  );
+  const smoothScroll = useCallback((e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
   return (
     <>
       <style>{`
-        /* ── Reset ─────────────────────────────── */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@400;500&display=swap');
+
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* ── Root ──────────────────────────────── */
-        .pc {
-          background: #FAFAFA;
-          color: #18181B;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          line-height: 1.5;
-          min-height: 100vh;
+        :root {
+          --paper: #F7F4EF;
+          --ink: #1A1A18;
+          --amber: #E8A020;
+          --amber-light: #FDF3DC;
+          --sage: #8A9E8A;
+          --rule: #DDD9D0;
+          --muted: #8A867C;
+          --card-bg: #FFFEF9;
+          --radius: 4px;
+          --radius-lg: 8px;
         }
 
-        /* ── Layout ────────────────────────────── */
-        .section {
-          padding: 3rem 1.25rem;
-          max-width: 900px;
-          margin: 0 auto;
-        }
-        @media (min-width: 640px) { .section { padding: 4rem 1.5rem; } }
-        @media (min-width: 1024px) { .section { padding: 5rem 2rem; } }
+        html { scroll-behavior: smooth; }
 
-        .divider {
-          border: none;
-          border-top: 1px solid #E4E4E7;
-          max-width: 900px;
-          margin: 0 auto;
+        body {
+          background: var(--paper);
+          color: var(--ink);
+          font-family: 'Inter', system-ui, sans-serif;
+          line-height: 1.6;
+          -webkit-font-smoothing: antialiased;
         }
 
-        /* ── Typography ────────────────────────── */
-        .label {
-          font-size: 0.7rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: #A1A1AA;
-        }
-        .h1 {
-          font-size: 1.75rem;
-          font-weight: 700;
-          line-height: 1.2;
-          color: #18181B;
-        }
-        @media (min-width: 640px) { .h1 { font-size: 2.25rem; } }
-        .h2 {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #18181B;
-        }
-        .body {
-          font-size: 0.9rem;
-          color: #52525B;
-          line-height: 1.65;
-        }
-        .muted { font-size: 0.8rem; color: #A1A1AA; }
-
-        /* ── Buttons ───────────────────────────── */
-        .btn-primary {
-          display: inline-block;
-          border-radius: 0.5rem;
-          background: #18181B;
-          border: none;
-          padding: 0.6rem 1.25rem;
-          font-size: 0.85rem;
-          font-weight: 500;
-          color: #FAFAFA;
-          cursor: pointer;
-          text-decoration: none;
-          transition: opacity 0.15s;
-        }
-        .btn-primary:hover { opacity: 0.8; }
-        .btn-outline {
-          display: inline-block;
-          border-radius: 0.5rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 0.6rem 1.25rem;
-          font-size: 0.85rem;
-          font-weight: 500;
-          color: #18181B;
-          cursor: pointer;
-          text-decoration: none;
-          transition: border-color 0.2s;
-        }
-        .btn-outline:hover { border-color: #A1A1AA; }
-
-        /* ── Nav ───────────────────────────────── */
-        .nav-wrapper {
-          border-bottom: 1px solid #E4E4E7;
-          background: rgba(250,250,250,0.9);
-          backdrop-filter: blur(8px);
+        /* ── MASTHEAD NAV ── */
+        .masthead {
           position: sticky;
           top: 0;
-          z-index: 10;
+          z-index: 50;
+          background: var(--paper);
+          border-bottom: 2px solid var(--ink);
+          transition: box-shadow 0.2s;
         }
-        .nav {
+        .masthead.scrolled {
+          box-shadow: 0 2px 20px rgba(26,26,24,0.08);
+        }
+        .masthead-inner {
+          max-width: 1040px;
+          margin: 0 auto;
+          padding: 0 1.5rem;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 1rem 1.25rem;
-          max-width: 900px;
-          margin: 0 auto;
+          height: 52px;
           gap: 1rem;
         }
-        .nav-brand {
-          font-size: 0.9375rem;
+        .masthead-name {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1.0625rem;
           font-weight: 700;
-          color: #18181B;
+          letter-spacing: -0.01em;
+          color: var(--ink);
           text-decoration: none;
         }
-        .nav-brand span { color: #A1A1AA; font-weight: 400; }
-        .nav-links {
+        .masthead-name em {
+          font-style: normal;
+          color: var(--muted);
+          font-weight: 400;
+        }
+        .masthead-links {
           display: flex;
-          gap: 1.25rem;
+          gap: 1.5rem;
+          list-style: none;
         }
-        @media (max-width: 480px) { .nav-links { display: none; } }
-        .nav-links a {
+        @media (max-width: 520px) { .masthead-links { display: none; } }
+        .masthead-links a {
           font-size: 0.8125rem;
-          color: #52525B;
+          color: var(--muted);
           text-decoration: none;
+          letter-spacing: 0.02em;
+          font-weight: 500;
           transition: color 0.15s;
         }
-        .nav-links a:hover { color: #18181B; }
-        .nav-cta {
-          border-radius: 0.5rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 0.375rem 0.875rem;
+        .masthead-links a:hover { color: var(--ink); }
+        .masthead-cta {
           font-size: 0.8125rem;
-          font-weight: 500;
-          color: #18181B;
-          cursor: pointer;
+          font-weight: 600;
+          padding: 0.375rem 0.875rem;
+          border: 1.5px solid var(--ink);
+          border-radius: var(--radius);
+          color: var(--ink);
           text-decoration: none;
+          background: transparent;
+          transition: background 0.15s, color 0.15s;
           white-space: nowrap;
-          transition: background 0.15s;
+          font-family: 'Space Grotesk', sans-serif;
         }
-        .nav-cta:hover { background: #F4F4F5; }
+        .masthead-cta:hover { background: var(--ink); color: var(--paper); }
 
-        /* ── Hero ──────────────────────────────── */
-        .hero-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 2rem;
-          align-items: center;
+        /* ── LAYOUT ── */
+        .container {
+          max-width: 1040px;
+          margin: 0 auto;
+          padding: 0 1.5rem;
         }
-        @media (min-width: 768px) {
-          .hero-grid { grid-template-columns: 1fr 1fr; gap: 3rem; }
+        .section-gap { margin-top: 5rem; }
+        @media (min-width: 768px) { .section-gap { margin-top: 6rem; } }
+
+        hr.rule {
+          border: none;
+          border-top: 1px solid var(--rule);
+          margin: 0;
+        }
+        hr.rule-heavy {
+          border: none;
+          border-top: 2px solid var(--ink);
+          margin: 0;
         }
 
-        .avatar-stack {
-          display: flex;
-          margin-bottom: 0.75rem;
-        }
-        .av {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          border: 2px solid #FAFAFA;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        /* ── EYEBROW LABEL ── */
+        .eyebrow {
+          font-family: 'Space Grotesk', sans-serif;
           font-size: 0.6875rem;
           font-weight: 600;
-          margin-right: -10px;
-          flex-shrink: 0;
-          object-fit: cover;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--muted);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
         }
-        .av-1 { background: #EEEDFE; z-index: 4; }
-        .av-2 { background: #E1F5EE; z-index: 3; }
-        .av-3 { background: #FAECE7; z-index: 2; }
-        .av-4 { background: #FAEEDA; z-index: 1; }
+        .eyebrow::before {
+          content: '';
+          width: 20px;
+          height: 1.5px;
+          background: var(--amber);
+          display: inline-block;
+          flex-shrink: 0;
+        }
 
-        .live-pill {
+        /* ── HERO ── */
+        .hero {
+          padding: 4rem 1.5rem 3rem;
+          max-width: 1040px;
+          margin: 0 auto;
+        }
+
+        .hero-top {
+          border-bottom: 1px solid var(--rule);
+          padding-bottom: 1rem;
+          margin-bottom: 2rem;
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+        .hero-dateline {
+          font-size: 0.75rem;
+          color: var(--muted);
+          font-family: 'Space Grotesk', sans-serif;
+          letter-spacing: 0.04em;
+        }
+        .hero-dateline strong {
+          color: var(--ink);
+          font-weight: 600;
+        }
+        .open-pill {
           display: inline-flex;
           align-items: center;
           gap: 5px;
@@ -382,213 +379,548 @@ export default function Page() {
           font-weight: 600;
           padding: 3px 10px;
           border-radius: 999px;
-          background: #ECFDF5;
-          color: #047857;
-          margin-bottom: 0.875rem;
+          background: var(--amber-light);
+          color: #92580C;
+          font-family: 'Space Grotesk', sans-serif;
+          letter-spacing: 0.03em;
+          border: 1px solid #E8A02050;
         }
-        .live-dot {
+        .open-dot {
           width: 6px; height: 6px;
           border-radius: 50%;
-          background: #10B981;
-          display: inline-block;
+          background: var(--amber);
+          animation: pulse-amber 2s infinite;
+        }
+        @keyframes pulse-amber {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
         }
 
-        .hero-buttons {
+        .hero-layout {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 2.5rem;
+          align-items: start;
+        }
+        @media (min-width: 768px) {
+          .hero-layout { grid-template-columns: 1fr 340px; gap: 3.5rem; }
+        }
+
+        .hero-kicker {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: var(--amber);
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          margin-bottom: 0.625rem;
+        }
+
+        .hero-headline {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: clamp(2.25rem, 6vw, 3.5rem);
+          font-weight: 700;
+          line-height: 1.08;
+          letter-spacing: -0.03em;
+          color: var(--ink);
+          margin-bottom: 1.125rem;
+        }
+        .hero-headline em {
+          font-style: italic;
+          font-weight: 300;
+          color: var(--muted);
+        }
+
+        .hero-lede {
+          font-size: 1rem;
+          color: #4A4740;
+          line-height: 1.7;
+          max-width: 38rem;
+          margin-bottom: 1.75rem;
+          border-left: 3px solid var(--amber);
+          padding-left: 1rem;
+        }
+
+        .hero-actions {
           display: flex;
           flex-wrap: wrap;
           gap: 0.625rem;
-          margin-top: 1.25rem;
+          margin-bottom: 1.5rem;
         }
-        .hero-free-text {
-          font-size: 0.7rem;
-          color: #A1A1AA;
-          margin-top: 0.875rem;
+        .btn-ink {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.375rem;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.875rem;
+          font-weight: 600;
+          padding: 0.625rem 1.25rem;
+          background: var(--ink);
+          color: var(--paper);
+          border: 1.5px solid var(--ink);
+          border-radius: var(--radius);
+          text-decoration: none;
+          cursor: pointer;
+          transition: background 0.15s, color 0.15s;
         }
+        .btn-ink:hover { background: #2D2D2A; }
+        .btn-ghost {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.375rem;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.875rem;
+          font-weight: 600;
+          padding: 0.625rem 1.25rem;
+          background: transparent;
+          color: var(--ink);
+          border: 1.5px solid var(--rule);
+          border-radius: var(--radius);
+          text-decoration: none;
+          cursor: pointer;
+          transition: border-color 0.15s, background 0.15s;
+        }
+        .btn-ghost:hover { border-color: var(--ink); background: #F0EDE6; }
 
-        .hero-stats-card {
-          border-radius: 0.875rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 1.25rem;
+        .hero-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          font-size: 0.75rem;
+          color: var(--muted);
         }
-        .stats-row {
+        .hero-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+        /* Hero photo column */
+        .hero-photo-col {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+        .hero-photo-frame {
+          position: relative;
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          border: 2px solid var(--rule);
+          aspect-ratio: 3/4;
+          background: #EDE9E1;
+        }
+        .hero-photo-frame img {
+          width: 100%; height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .hero-photo-caption {
+          font-size: 0.6875rem;
+          color: var(--muted);
+          font-style: italic;
+          text-align: center;
+          line-height: 1.4;
+        }
+        .hero-stats-row {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 0.5rem;
-          margin-bottom: 1rem;
         }
-        .stat-item { text-align: center; }
-        .stat-num {
+        .hero-stat {
+          text-align: center;
+          border: 1px solid var(--rule);
+          border-radius: var(--radius);
+          padding: 0.625rem 0.25rem;
+          background: var(--card-bg);
+        }
+        .hero-stat-num {
+          font-family: 'Space Grotesk', sans-serif;
           font-size: 1.375rem;
           font-weight: 700;
-          color: #18181B;
+          color: var(--ink);
           line-height: 1;
         }
-        .stat-lbl {
-          font-size: 0.6875rem;
-          color: #A1A1AA;
-          margin-top: 0.25rem;
-        }
-        .stack-tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 5px;
-          border-top: 1px solid #F4F4F5;
-          padding-top: 0.875rem;
-          margin-top: 0.5rem;
-        }
-        .stag {
-          font-size: 0.6875rem;
-          padding: 3px 8px;
-          border-radius: 0.375rem;
-          border: 1px solid #E4E4E7;
-          background: #FAFAFA;
-          color: #52525B;
+        .hero-stat-lbl {
+          font-size: 0.625rem;
+          color: var(--muted);
+          margin-top: 0.2rem;
+          letter-spacing: 0.03em;
         }
 
-        /* ── How It Works ──────────────────────── */
-        .steps-grid {
+        /* ── ABOUT / PROCESS ── */
+        .about-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0.625rem;
-          margin-top: 1.25rem;
+          grid-template-columns: 1fr;
+          gap: 2rem;
+          align-items: start;
+          margin-top: 2rem;
         }
-        @media (min-width: 640px) { .steps-grid { grid-template-columns: repeat(4, 1fr); } }
-        .step-card {
-          border-radius: 0.875rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 1rem;
-          transition: border-color 0.2s;
-        }
-        .step-card:hover { border-color: #A1A1AA; }
-        .step-number {
-          font-size: 0.7rem;
-          font-weight: 600;
-          color: #D4D4D8;
-          margin-bottom: 0.625rem;
-        }
-        .step-icon { font-size: 1.125rem; margin-bottom: 0.375rem; }
-        .step-title { font-size: 0.8125rem; font-weight: 600; color: #18181B; }
-        .step-desc {
-          font-size: 0.75rem;
-          color: #71717A;
-          line-height: 1.4;
-          margin-top: 0.25rem;
+        @media (min-width: 768px) {
+          .about-grid { grid-template-columns: 1fr 1fr; gap: 3rem; }
         }
 
-        /* ── Projects ──────────────────────────── */
-        .section-header {
+        .about-body {
+          font-size: 0.9375rem;
+          color: #3A3830;
+          line-height: 1.8;
+        }
+        .about-body p + p { margin-top: 1rem; }
+
+        .about-highlight {
+          background: var(--amber-light);
+          border-left: 3px solid var(--amber);
+          padding: 0.875rem 1rem;
+          border-radius: 0 var(--radius) var(--radius) 0;
+          margin: 1.25rem 0;
+          font-size: 0.9rem;
+          color: #5C4A10;
+          font-style: italic;
+          line-height: 1.6;
+        }
+
+        .process-steps {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+        .process-step {
+          display: flex;
+          gap: 1rem;
+          padding: 1rem 0;
+          border-bottom: 1px solid var(--rule);
+        }
+        .process-step:last-child { border-bottom: none; }
+        .process-step-num {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--amber);
+          width: 1.5rem;
+          flex-shrink: 0;
+          padding-top: 0.125rem;
+        }
+        .process-step-icon { font-size: 1rem; flex-shrink: 0; }
+        .process-step-body { flex: 1; }
+        .process-step-title {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--ink);
+          margin-bottom: 0.25rem;
+        }
+        .process-step-desc {
+          font-size: 0.8125rem;
+          color: var(--muted);
+          line-height: 1.5;
+        }
+
+        /* ── PROJECTS ── */
+        .section-header-row {
           display: flex;
           align-items: flex-end;
           justify-content: space-between;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1.5rem;
           gap: 1rem;
         }
-        .view-all {
-          font-size: 0.8125rem;
-          font-weight: 500;
-          color: #18181B;
-          text-decoration: underline;
-          background: none;
-          border: none;
-          cursor: pointer;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-        .view-all:hover { text-decoration: none; }
 
-        .filter-row {
+        .filter-strip {
           display: flex;
           flex-wrap: wrap;
-          gap: 6px;
-          margin-bottom: 1rem;
+          gap: 5px;
+          margin-bottom: 1.25rem;
         }
-        .filter-btn {
+        .filter-pill {
           font-size: 0.75rem;
-          padding: 4px 14px;
+          font-weight: 500;
+          padding: 0.3rem 0.875rem;
           border-radius: 999px;
-          border: 1px solid #E4E4E7;
-          background: white;
-          color: #52525B;
+          border: 1.5px solid var(--rule);
+          background: var(--card-bg);
+          color: var(--muted);
           cursor: pointer;
           transition: all 0.15s;
+          font-family: 'Space Grotesk', sans-serif;
         }
-        .filter-btn:hover { border-color: #A1A1AA; }
-        .filter-btn.active {
-          background: #18181B;
-          color: white;
-          border-color: #18181B;
+        .filter-pill:hover { border-color: var(--ink); color: var(--ink); }
+        .filter-pill.active {
+          background: var(--ink);
+          color: var(--paper);
+          border-color: var(--ink);
         }
 
         .projects-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 0.625rem;
+          gap: 1px;
+          border: 1.5px solid var(--ink);
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          background: var(--rule);
         }
-        @media (min-width: 600px) { .projects-grid { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 640px) {
+          .projects-grid { grid-template-columns: 1fr 1fr; }
+        }
 
         .proj-card {
-          border-radius: 0.875rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 1.125rem;
-          cursor: pointer;
-          transition: border-color 0.2s, box-shadow 0.2s;
+          background: var(--card-bg);
+          padding: 1.375rem;
           text-decoration: none;
           display: block;
+          transition: background 0.15s;
+          position: relative;
         }
-        .proj-card:hover {
-          border-color: #A1A1AA;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        .proj-card:hover { background: var(--amber-light); }
+
+        .proj-issue-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 0.75rem;
         }
-        .proj-header {
+        .proj-issue {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.625rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--muted);
+        }
+        .proj-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.625rem;
+          font-weight: 600;
+          padding: 2px 7px;
+          border-radius: 999px;
+          font-family: 'Space Grotesk', sans-serif;
+        }
+        .proj-status-dot {
+          width: 5px; height: 5px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .proj-icon-row {
           display: flex;
           align-items: flex-start;
-          justify-content: space-between;
+          gap: 0.75rem;
           margin-bottom: 0.5rem;
         }
         .proj-icon-img {
-          width: 28px;
-          height: 28px;
-          border-radius: 0.375rem;
-        }
-        .proj-status-badge {
-          font-size: 0.6875rem;
-          font-weight: 500;
-          padding: 2px 8px;
-          border-radius: 999px;
+          width: 32px; height: 32px;
+          border-radius: var(--radius);
+          object-fit: cover;
+          border: 1px solid var(--rule);
           flex-shrink: 0;
+          background: #EDE9E1;
         }
-        .proj-name { font-size: 0.875rem; font-weight: 600; color: #18181B; }
-        .proj-desc { font-size: 0.8125rem; color: #52525B; line-height: 1.5; margin-top: 0.25rem; }
+        .proj-name {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1rem;
+          font-weight: 700;
+          color: var(--ink);
+          letter-spacing: -0.01em;
+          line-height: 1.2;
+          margin-top: 0.125rem;
+        }
+        .proj-lede {
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: #3A3830;
+          line-height: 1.5;
+          margin-bottom: 0.5rem;
+        }
+        .proj-desc {
+          font-size: 0.75rem;
+          color: var(--muted);
+          line-height: 1.55;
+          margin-bottom: 0.875rem;
+        }
         .proj-tags {
           display: flex;
           flex-wrap: wrap;
           gap: 4px;
-          margin-top: 0.75rem;
+          margin-top: auto;
         }
         .ptag {
-          font-size: 0.6875rem;
-          padding: 2px 7px;
-          border-radius: 0.375rem;
-          border: 1px solid #E4E4E7;
-          color: #71717A;
+          font-size: 0.625rem;
+          font-weight: 500;
+          padding: 2px 6px;
+          border-radius: 2px;
+          border: 1px solid var(--rule);
+          color: var(--muted);
+          font-family: 'Space Grotesk', sans-serif;
+          letter-spacing: 0.02em;
+        }
+        .proj-card:hover .ptag { border-color: #E8A02060; }
+
+        /* ── FIELD NOTES / BLOG ── */
+        .field-notes-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+          margin-top: 2rem;
+        }
+        @media (min-width: 640px) {
+          .field-notes-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (min-width: 900px) {
+          .field-notes-grid { grid-template-columns: 1fr 1fr 1fr; }
         }
 
-        /* ── Experience ────────────────────────── */
-        .exp-list { display: flex; flex-direction: column; gap: 0.625rem; }
+        .note-card {
+          border: 1px solid var(--rule);
+          border-radius: var(--radius-lg);
+          background: var(--card-bg);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          cursor: pointer;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          text-decoration: none;
+        }
+        .note-card:hover {
+          border-color: var(--amber);
+          box-shadow: 0 4px 24px rgba(232, 160, 32, 0.1);
+        }
+        .note-img-wrap {
+          aspect-ratio: 16/9;
+          background: #EDE9E1;
+          overflow: hidden;
+          position: relative;
+        }
+        .note-img-wrap img {
+          width: 100%; height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.4s;
+        }
+        .note-card:hover .note-img-wrap img { transform: scale(1.04); }
+        .note-img-placeholder {
+          width: 100%; height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2rem;
+          background: linear-gradient(135deg, #EDE9E1, #DDD9D0);
+        }
+        .note-body { padding: 1.125rem; flex: 1; display: flex; flex-direction: column; }
+        .note-meta {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.625rem;
+        }
+        .note-tag {
+          font-size: 0.6rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--amber);
+          font-family: 'Space Grotesk', sans-serif;
+        }
+        .note-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--rule); }
+        .note-date { font-size: 0.6875rem; color: var(--muted); }
+        .note-title {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: var(--ink);
+          line-height: 1.3;
+          letter-spacing: -0.01em;
+          margin-bottom: 0.5rem;
+        }
+        .note-excerpt {
+          font-size: 0.8125rem;
+          color: var(--muted);
+          line-height: 1.6;
+          flex: 1;
+        }
+        .note-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: 0.875rem;
+          padding-top: 0.875rem;
+          border-top: 1px solid var(--rule);
+        }
+        .note-read-time { font-size: 0.6875rem; color: var(--muted); }
+        .note-arrow { font-size: 0.75rem; color: var(--amber); font-weight: 700; }
+
+        /* ── STACK ── */
+        .stack-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1px;
+          border: 1.5px solid var(--ink);
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          background: var(--rule);
+          margin-top: 2rem;
+        }
+        @media (min-width: 640px) {
+          .stack-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        .stack-cell {
+          background: var(--card-bg);
+          padding: 1.25rem 1rem;
+        }
+        .stack-cell-label {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.625rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--amber);
+          margin-bottom: 0.625rem;
+        }
+        .stack-item {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+          font-size: 0.8125rem;
+          color: #3A3830;
+          padding: 0.3rem 0;
+          border-bottom: 1px solid var(--rule);
+          font-weight: 500;
+        }
+        .stack-item:last-child { border-bottom: none; }
+        .stack-item::before {
+          content: '';
+          width: 4px; height: 4px;
+          background: var(--amber);
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        /* ── EXPERIENCE ── */
+        .exp-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          border: 1.5px solid var(--ink);
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          margin-top: 2rem;
+        }
         .exp-item {
           display: flex;
-          gap: 0.875rem;
-          border-radius: 0.875rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 1rem 1.125rem;
-          transition: border-color 0.2s;
+          gap: 1rem;
+          padding: 1.25rem 1.375rem;
+          background: var(--card-bg);
+          border-bottom: 1px solid var(--rule);
+          transition: background 0.15s;
         }
-        .exp-item:hover { border-color: #A1A1AA; }
-        .exp-icon { font-size: 1.125rem; margin-top: 2px; flex-shrink: 0; }
+        .exp-item:last-child { border-bottom: none; }
+        .exp-item:hover { background: var(--amber-light); }
+        .exp-icon-wrap {
+          width: 2.25rem;
+          height: 2.25rem;
+          border-radius: var(--radius);
+          background: var(--paper);
+          border: 1px solid var(--rule);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1rem;
+          flex-shrink: 0;
+        }
         .exp-body { flex: 1; min-width: 0; }
         .exp-row {
           display: flex;
@@ -596,286 +928,412 @@ export default function Page() {
           justify-content: space-between;
           gap: 0.5rem;
           flex-wrap: wrap;
+          margin-bottom: 0.2rem;
         }
-        .exp-title { font-size: 0.875rem; font-weight: 600; color: #18181B; }
-        .exp-period { font-size: 0.75rem; color: #A1A1AA; flex-shrink: 0; }
-        .exp-sub { font-size: 0.75rem; color: #A1A1AA; margin-top: 2px; }
-        .exp-desc { font-size: 0.8125rem; color: #52525B; line-height: 1.5; margin-top: 0.375rem; }
+        .exp-title {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: var(--ink);
+          letter-spacing: -0.01em;
+        }
+        .exp-period {
+          font-size: 0.75rem;
+          color: var(--muted);
+          font-family: 'Space Grotesk', sans-serif;
+          flex-shrink: 0;
+        }
+        .exp-sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.375rem; }
+        .exp-desc { font-size: 0.8125rem; color: #4A4740; line-height: 1.6; }
 
-        /* ── CTA Banner ────────────────────────── */
-        .cta-card {
-          border-radius: 0.875rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 2rem;
-          text-align: center;
-          max-width: 440px;
-          margin: 0 auto;
-        }
-        .cta-buttons {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 0.625rem;
-          margin-top: 1.25rem;
-        }
-
-        /* ── Roadmap ───────────────────────────── */
-        .roadmap-header {
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          margin-bottom: 1.25rem;
-        }
-        .toggle-btn {
-          border-radius: 0.5rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 0.375rem 0.875rem;
-          font-size: 0.8125rem;
-          font-weight: 500;
-          color: #18181B;
-          cursor: pointer;
-          transition: border-color 0.2s;
-        }
-        .toggle-btn:hover { border-color: #A1A1AA; }
-        .roadmap-grid {
+        /* ── CONTACT ── */
+        .contact-layout {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 0.625rem;
+          gap: 2rem;
+          margin-top: 2rem;
+          align-items: start;
         }
-        @media (min-width: 640px) { .roadmap-grid { grid-template-columns: 1fr 1fr; } }
-        @media (min-width: 900px) { .roadmap-grid { grid-template-columns: 1fr 1fr 1fr; } }
-        .rm-item {
+        @media (min-width: 640px) {
+          .contact-layout { grid-template-columns: 1fr 1fr; }
+        }
+        .contact-card {
+          border: 1.5px solid var(--ink);
+          border-radius: var(--radius-lg);
+          background: var(--card-bg);
+          padding: 2rem;
+        }
+        .contact-card-dark {
+          background: var(--ink);
+          border-color: var(--ink);
+        }
+        .contact-headline {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--ink);
+          letter-spacing: -0.02em;
+          line-height: 1.2;
+          margin-bottom: 0.75rem;
+        }
+        .contact-headline-inv { color: var(--paper); }
+        .contact-body {
+          font-size: 0.875rem;
+          color: #4A4740;
+          line-height: 1.65;
+          margin-bottom: 1.5rem;
+        }
+        .contact-body-inv { color: #B0ADA5; }
+        .contact-links {
           display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .contact-link {
+          display: flex;
+          align-items: center;
           gap: 0.625rem;
-          border-radius: 0.875rem;
-          border: 1px solid #E4E4E7;
-          background: white;
-          padding: 1rem;
-          transition: border-color 0.2s;
-        }
-        .rm-item:hover { border-color: #A1A1AA; }
-        .rm-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
-        .rm-title { font-size: 0.8125rem; font-weight: 600; color: #18181B; }
-        .rm-status-badge {
-          font-size: 0.625rem;
+          font-size: 0.875rem;
           font-weight: 500;
-          padding: 1px 6px;
-          border-radius: 999px;
-          vertical-align: middle;
-          margin-left: 5px;
+          color: var(--paper);
+          text-decoration: none;
+          padding: 0.625rem 0.875rem;
+          border: 1px solid #FFFFFF20;
+          border-radius: var(--radius);
+          transition: background 0.15s, border-color 0.15s;
+          font-family: 'Space Grotesk', sans-serif;
         }
-        .rm-desc { font-size: 0.75rem; color: #71717A; line-height: 1.4; margin-top: 0.25rem; }
+        .contact-link:hover { background: #FFFFFF15; border-color: var(--amber); }
+        .contact-link-icon { font-size: 1rem; }
+        .contact-fact-list {
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 0.625rem;
+        }
+        .contact-fact {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.625rem;
+          font-size: 0.875rem;
+          color: #4A4740;
+          line-height: 1.5;
+        }
+        .contact-fact::before {
+          content: '→';
+          color: var(--amber);
+          font-weight: 700;
+          flex-shrink: 0;
+          font-family: 'Space Grotesk', sans-serif;
+        }
 
-        /* ── Footer ────────────────────────────── */
+        /* ── FOOTER ── */
         .footer {
-          border-top: 1px solid #E4E4E7;
-          padding: 1.5rem 1.25rem;
-          max-width: 900px;
-          margin: 0 auto;
+          margin-top: 5rem;
+          border-top: 2px solid var(--ink);
         }
         .footer-inner {
+          max-width: 1040px;
+          margin: 0 auto;
+          padding: 1.25rem 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+        }
+        .footer-brand {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: var(--ink);
+        }
+        .footer-brand em { font-style: normal; color: var(--muted); font-weight: 400; }
+        .footer-links-row { display: flex; gap: 1rem; }
+        .footer-links-row a {
+          font-size: 0.75rem;
+          color: var(--muted);
+          text-decoration: none;
+          font-weight: 500;
+          transition: color 0.15s;
+        }
+        .footer-links-row a:hover { color: var(--ink); }
+        .footer-copy { font-size: 0.75rem; color: var(--muted); }
+
+        /* ── UTILITY ── */
+        .ghost-anchor { color: inherit; text-decoration: none; }
+        .gh-link {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: var(--muted);
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          transition: color 0.15s;
+        }
+        .gh-link:hover { color: var(--ink); }
+
+        .section-title {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1.625rem;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          color: var(--ink);
+          margin-top: 0.375rem;
+        }
+
+        /* ── PHOTOS STRIP ── */
+        .photos-strip {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.5rem;
+          margin-top: 2rem;
+        }
+        @media (min-width: 640px) { .photos-strip { gap: 0.875rem; } }
+        .photo-item {
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          border: 1px solid var(--rule);
+          aspect-ratio: 4/3;
+          background: #EDE9E1;
+          position: relative;
+        }
+        .photo-item img {
+          width: 100%; height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .photo-placeholder {
+          width: 100%; height: 100%;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.875rem;
-          text-align: center;
-        }
-        @media (min-width: 640px) {
-          .footer-inner {
-            flex-direction: row;
-            justify-content: space-between;
-            text-align: left;
-          }
-        }
-        .footer-brand {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-        .footer-brand-icon {
-          width: 1.5rem;
-          height: 1.5rem;
-          border-radius: 0.375rem;
-          background: #18181B;
-          display: flex;
-          align-items: center;
           justify-content: center;
-          font-size: 0.75rem;
-          color: white;
-          overflow: hidden;
+          gap: 0.25rem;
+          background: linear-gradient(135deg, #EDE9E1, #DDD9D0);
         }
-        .footer-brand-icon img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+        .photo-placeholder-icon { font-size: 1.5rem; }
+        .photo-placeholder-text { font-size: 0.625rem; color: var(--muted); text-align: center; }
+        .photo-caption {
+          position: absolute;
+          bottom: 0;
+          left: 0; right: 0;
+          background: linear-gradient(to top, rgba(26,26,24,0.7), transparent);
+          padding: 1.5rem 0.625rem 0.5rem;
+          font-size: 0.6875rem;
+          color: rgba(247,244,239,0.9);
+          font-style: italic;
         }
-        .footer-brand-name {
-          font-size: 0.875rem;
-          font-weight: 700;
-          color: #18181B;
-        }
-        .footer-brand-name span { color: #A1A1AA; font-weight: 400; }
-        .footer-links {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 1rem;
-        }
-        .footer-links a {
-          font-size: 0.75rem;
-          color: #71717A;
-          text-decoration: none;
-          transition: color 0.15s;
-        }
-        .footer-links a:hover { color: #18181B; }
-        .footer-copy { font-size: 0.75rem; color: #A1A1AA; }
       `}</style>
 
-      <div className="pc">
+      <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
 
-        {/* ── NAV ──────────────────────────────── */}
-        <div className="nav-wrapper">
-          <nav className="nav">
-            <Link href="/" className="nav-brand">
-              Noba<span> · Edx Morung</span>
+        {/* ── MASTHEAD ── */}
+        <header className={`masthead${scrolled ? " scrolled" : ""}`}>
+          <div className="masthead-inner">
+            <Link href="/" className="masthead-name">
+              Noba <em>· Edx Morung</em>
             </Link>
-            <div className="nav-links">
+            <ul className="masthead-links">
               {[
-                { label: "Projects", id: "projects" },
-                { label: "Experience", id: "experience" },
-                { label: "Roadmap", id: "roadmap" },
+                { label: "Work", id: "projects" },
+                { label: "About", id: "about" },
+                { label: "Field Notes", id: "field-notes" },
                 { label: "Contact", id: "contact" },
               ].map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(e) => handleNavClick(e, item.id)}
-                >
-                  {item.label}
-                </a>
+                <li key={item.id}>
+                  <a href={`#${item.id}`} onClick={(e) => smoothScroll(e, item.id)}>
+                    {item.label}
+                  </a>
+                </li>
               ))}
-            </div>
-            <a
-              href="/resume.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="nav-cta"
-            >
-              Resume ↗
+            </ul>
+            <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="masthead-cta">
+              Résumé ↗
             </a>
-          </nav>
-        </div>
+          </div>
+        </header>
 
-        {/* ── HERO ─────────────────────────────── */}
-        <section className="section" id="hero">
-          <div className="hero-grid">
-            <div>
-              <div className="avatar-stack">
-                <Image src={IMAGES.avatar1} alt="VZ" width={36} height={36} className="av av-1" />
-                <Image src={IMAGES.avatar2} alt="EV" width={36} height={36} className="av av-2" />
-                <Image src={IMAGES.avatar3} alt="AN" width={36} height={36} className="av av-3" />
-                <Image src={IMAGES.avatar4} alt="MX" width={36} height={36} className="av av-4" />
-              </div>
-              <span className="live-pill">
-                <span className="live-dot" />
+        {/* ── HERO ── */}
+        <div ref={heroRef}>
+          {/* Dateline bar */}
+          <div className="hero">
+            <div className="hero-top">
+              <span className="hero-dateline">
+                <strong>Nagaland, India</strong> — Solo founder &amp; full-stack developer
+              </span>
+              <span className="open-pill">
+                <span className="open-dot" />
                 Open to internships
               </span>
-              <h1 className="h1">
-                Solo founder building AI products for students in Nagaland
-              </h1>
-              <p className="body" style={{ marginTop: "0.625rem" }}>
-                I&rsquo;m a frontend &amp; full‑stack developer and founder behind Edx Morung
-                and Vizo AI — shipping real products with RAG pipelines, Supabase,
-                and Gemini from Nagaland, India.
-              </p>
-              <div className="hero-buttons">
-                <a href="#projects" onClick={(e) => handleNavClick(e, "projects")} className="btn-primary">
-                  View Projects →
-                </a>
-                <a href="#contact" onClick={(e) => handleNavClick(e, "contact")} className="btn-outline">
-                  Get in touch
-                </a>
-              </div>
-              <p className="hero-free-text">
-                Next.js · Supabase · Gemini · pgvector · Tailwind
-              </p>
             </div>
 
-            <div className="hero-stats-card">
-              <p className="label" style={{ marginBottom: "0.875rem" }}>By the numbers</p>
-              <div className="stats-row">
-                <div className="stat-item">
-                  <div className="stat-num">6+</div>
-                  <div className="stat-lbl">Products shipped</div>
+            <div className="hero-layout">
+              {/* Left: copy */}
+              <div>
+                <p className="hero-kicker">Est. 2023 · Edx Morung</p>
+                <h1 className="hero-headline">
+                  Building AI products<br />
+                  from <em>Northeast India,</em><br />
+                  solo.
+                </h1>
+                <p className="hero-lede">
+                  I&rsquo;m a self-taught developer and founder. I build real AI products —
+                  RAG pipelines, billing systems, tutor apps — from Nagaland. Not proof of
+                  concepts. Real things students use.
+                </p>
+                <div className="hero-actions">
+                  <a href="#projects" onClick={(e) => smoothScroll(e, "projects")} className="btn-ink">
+                    See the work →
+                  </a>
+                  <a href="#contact" onClick={(e) => smoothScroll(e, "contact")} className="btn-ghost">
+                    Let&rsquo;s talk
+                  </a>
                 </div>
-                <div className="stat-item">
-                  <div className="stat-num">3</div>
-                  <div className="stat-lbl">Hackathons</div>
-                </div>
-                <div className="stat-item">
-                  <div className="stat-num">1</div>
-                  <div className="stat-lbl">Sole prop.</div>
+                <div className="hero-meta">
+                  <span>📍 Nagaland, India</span>
+                  <span>⚡ Next.js · Supabase · Gemini</span>
+                  <span>🤝 Remote-friendly</span>
                 </div>
               </div>
-              <p className="label">Core stack</p>
-              <div className="stack-tags">
-                {STACK.map((t) => (
-                  <span key={t} className="stag">{t}</span>
+
+              {/* Right: photo + stats */}
+              <div className="hero-photo-col">
+                <div className="hero-photo-frame">
+                  {/* Replace src with your real photo */}
+                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #EDE9E1, #DDD9D0)", fontSize: "3rem" }}>
+                    👤
+                  </div>
+                  {/* Uncomment when you have a real photo:
+                  <Image src={IMAGES.hero} alt="Noba" fill style={{ objectFit: "cover" }} />
+                  */}
+                </div>
+                <p className="hero-photo-caption">
+                  Replace with a real photo of you — candid works best.
+                </p>
+                <div className="hero-stats-row">
+                  {[
+                    { num: "6+", lbl: "Products shipped" },
+                    { num: "3", lbl: "Hackathons" },
+                    { num: "1", lbl: "Sole prop." },
+                  ].map((s) => (
+                    <div key={s.lbl} className="hero-stat">
+                      <div className="hero-stat-num">{s.num}</div>
+                      <div className="hero-stat-lbl">{s.lbl}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr className="rule-heavy" />
+
+        {/* ── ABOUT ── */}
+        <section className="container section-gap" id="about">
+          <div className="eyebrow">About</div>
+          <div className="section-header-row" style={{ marginTop: "0.5rem" }}>
+            <h2 className="section-title">The story behind the work</h2>
+          </div>
+
+          <div className="about-grid">
+            <div>
+              <div className="about-body">
+                <p>
+                  I&rsquo;m Noba — a self-taught developer and sole founder building from Nagaland,
+                  Northeast India. No CS degree, no bootcamp, no team. Just a laptop, a relentless
+                  curiosity for how things actually work, and a specific problem I couldn&rsquo;t stop
+                  thinking about.
+                </p>
+                <div className="about-highlight">
+                  "The edtech market pretends Northeast India doesn&rsquo;t exist. CBSE students here study
+                  from shared photocopied textbooks. Vizo AI exists because I lived that problem."
+                </div>
+                <p>
+                  I founded Edx Morung as a registered sole proprietorship (GST + Udyam) to give my
+                  work a real structure. I&rsquo;ve shipped RAG pipelines, billing systems with Razorpay Route,
+                  real-time apps, and a published Node.js auth ebook — all while figuring it out as I go.
+                </p>
+                <p>
+                  I&rsquo;m backend-first by instinct, Next.js App Router as my primary framework, and I have
+                  a deep habit of building things completely before considering if they&rsquo;re "good enough to ship."
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <div className="eyebrow" style={{ marginBottom: "1rem" }}>How I work</div>
+              <div className="process-steps">
+                {[
+                  ["💡", "Find a real gap", "Problems I see in Nagaland and NE India — real people, real friction, not imagined user personas."],
+                  ["🎨", "Design mobile-first", "Next.js App Router, Tailwind, and a lot of willingness to throw away the first layout."],
+                  ["🤖", "Add the AI layer", "RAG pipelines, pgvector embeddings, Gemini 2.5 Flash — only when AI makes the product genuinely better."],
+                  ["💳", "Wire up real billing", "Stripe and Razorpay Route from day one. Products that don't bill aren't products."],
+                  ["🚀", "Ship and iterate", "Vercel + Render + Supabase. Real users, real feedback, real edge cases I didn't predict."],
+                ].map(([icon, title, desc], i) => (
+                  <div key={i} className="process-step">
+                    <span className="process-step-num">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="process-step-icon">{icon}</span>
+                    <div className="process-step-body">
+                      <p className="process-step-title">{title}</p>
+                      <p className="process-step-desc">{desc}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
-        </section>
 
-        <hr className="divider" />
-
-        {/* ── HOW IT WORKS ─────────────────────── */}
-        <section className="section">
-          <p className="label">How I work</p>
-          <h2 className="h2">From idea to production, solo</h2>
-          <div className="steps-grid">
-            {[
-              ["💡", "Spot a gap", "Real problems in Nagaland / NE India — students, logistics, edtech"],
-              ["🎨", "Design fast", "Mobile-first UI, Next.js App Router, Tailwind CSS system"],
-              ["🤖", "Add AI", "RAG pipelines, embeddings, Gemini 2.5, pgvector cosine similarity"],
-              ["🚀", "Ship it", "Vercel / Render, Supabase, real billing with Stripe & Razorpay"],
-            ].map(([icon, title, desc], i) => (
-              <div key={i} className="step-card">
-                <p className="step-number">{String(i + 1).padStart(2, "0")}</p>
-                <div className="step-icon">{icon}</div>
-                <p className="step-title">{title}</p>
-                <p className="step-desc">{desc}</p>
-              </div>
-            ))}
+          {/* Behind the scenes photos */}
+          <div style={{ marginTop: "2.5rem" }}>
+            <p className="eyebrow" style={{ marginBottom: "1rem" }}>Behind the scenes</p>
+            <div className="photos-strip">
+              {[
+                { emoji: "🖥️", label: "The workspace", caption: "Late nights in Nagaland" },
+                { emoji: "📝", label: "Planning sessions", caption: "Whiteboard before code" },
+                { emoji: "🚀", label: "Shipping days", caption: "When it finally works" },
+              ].map((ph, i) => (
+                <div key={i} className="photo-item">
+                  {/* Replace with: <Image src={buildingImages[i]} alt={ph.label} fill style={{objectFit:"cover"}} /> */}
+                  <div className="photo-placeholder">
+                    <span className="photo-placeholder-icon">{ph.emoji}</span>
+                    <span className="photo-placeholder-text">{ph.label}</span>
+                  </div>
+                  <div className="photo-caption">{ph.caption}</div>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.625rem", fontStyle: "italic" }}>
+              → Drop your own photos in /public/images and replace the placeholders above.
+            </p>
           </div>
         </section>
 
-        <hr className="divider" />
+        <hr className="rule" style={{ marginTop: "5rem" }} />
 
-        {/* ── PROJECTS ─────────────────────────── */}
-        <section className="section" id="projects">
-          <div className="section-header">
-            <div>
-              <p className="label">Portfolio</p>
-              <h2 className="h2" style={{ marginTop: "0.25rem" }}>Projects I&rsquo;ve built</h2>
-            </div>
+        {/* ── PROJECTS ── */}
+        <section className="container section-gap" id="projects">
+          <div className="eyebrow">Work</div>
+          <div className="section-header-row" style={{ marginTop: "0.5rem" }}>
+            <h2 className="section-title">Things I&rsquo;ve built</h2>
             <a
               href="https://github.com/YOUR_USERNAME"
               target="_blank"
               rel="noopener noreferrer"
-              className="view-all"
+              className="gh-link"
             >
-              GitHub →
+              GitHub ↗
             </a>
           </div>
 
-          <div className="filter-row">
+          <div className="filter-strip">
             {FILTERS.map((f) => (
               <button
                 key={f}
-                className={`filter-btn${activeFilter === f ? " active" : ""}`}
+                className={`filter-pill${activeFilter === f ? " active" : ""}`}
                 onClick={() => setActiveFilter(f)}
               >
                 {f}
@@ -885,7 +1343,7 @@ export default function Page() {
 
           <div className="projects-grid">
             {filteredProjects.map((p) => {
-              const s = STATUS_STYLES[p.status];
+              const s = STATUS_META[p.status];
               return (
                 <Link
                   key={p.id}
@@ -894,22 +1352,27 @@ export default function Page() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <div className="proj-header">
-                    <Image
-                      src={p.image}
-                      alt={p.name}
-                      width={28}
-                      height={28}
-                      className="proj-icon-img"
-                    />
+                  <div className="proj-issue-row">
+                    <span className="proj-issue">{p.issue}</span>
                     <span
-                      className="proj-status-badge"
+                      className="proj-status"
                       style={{ background: s.bg, color: s.color }}
                     >
+                      <span className="proj-status-dot" style={{ background: s.dot }} />
                       {s.label}
                     </span>
                   </div>
-                  <p className="proj-name">{p.name}</p>
+                  <div className="proj-icon-row">
+                    <div
+                      className="proj-icon-img"
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}
+                    >
+                      {/* Replace with: <Image src={p.image} alt={p.name} width={32} height={32} style={{objectFit:"cover"}} /> */}
+                      📦
+                    </div>
+                    <p className="proj-name">{p.name}</p>
+                  </div>
+                  <p className="proj-lede">{p.lede}</p>
                   <p className="proj-desc">{p.desc}</p>
                   <div className="proj-tags">
                     {p.tags.map((t) => (
@@ -922,18 +1385,79 @@ export default function Page() {
           </div>
         </section>
 
-        <hr className="divider" />
+        <hr className="rule" style={{ marginTop: "5rem" }} />
 
-        {/* ── EXPERIENCE ───────────────────────── */}
-        <section className="section" id="experience">
-          <p className="label">Background</p>
-          <h2 className="h2" style={{ marginTop: "0.25rem", marginBottom: "1.25rem" }}>
-            Experience
-          </h2>
+        {/* ── FIELD NOTES ── */}
+        <section className="container section-gap" id="field-notes">
+          <div className="eyebrow">Field Notes</div>
+          <div className="section-header-row" style={{ marginTop: "0.5rem" }}>
+            <h2 className="section-title">From the build log</h2>
+            <a href="#" className="gh-link">All notes →</a>
+          </div>
+          <p style={{ fontSize: "0.875rem", color: "var(--muted)", maxWidth: "36rem", lineHeight: "1.6" }}>
+            Behind-the-scenes writing on building products, surviving hackathons, and
+            shipping from a place most SaaS founders have never heard of.
+          </p>
+
+          <div className="field-notes-grid">
+            {FIELD_NOTES.map((note, i) => (
+              <a key={i} href="#" className="note-card">
+                <div className="note-img-wrap">
+                  {/* Replace with: <Image src={note.img} alt={note.title} fill style={{objectFit:"cover"}} /> */}
+                  <div className="note-img-placeholder">
+                    {["🔧", "🌏", "⚡"][i]}
+                  </div>
+                </div>
+                <div className="note-body">
+                  <div className="note-meta">
+                    <span className="note-tag">{note.tag}</span>
+                    <span className="note-dot" />
+                    <span className="note-date">{note.date}</span>
+                  </div>
+                  <h3 className="note-title">{note.title}</h3>
+                  <p className="note-excerpt">{note.excerpt}</p>
+                  <div className="note-footer">
+                    <span className="note-read-time">☕ {note.readTime} read</span>
+                    <span className="note-arrow">Read →</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <hr className="rule" style={{ marginTop: "5rem" }} />
+
+        {/* ── STACK ── */}
+        <section className="container section-gap" id="stack">
+          <div className="eyebrow">Stack</div>
+          <div className="section-header-row" style={{ marginTop: "0.5rem" }}>
+            <h2 className="section-title">Tools I actually use</h2>
+          </div>
+          <div className="stack-grid">
+            {STACK_SECTIONS.map((sec) => (
+              <div key={sec.label} className="stack-cell">
+                <p className="stack-cell-label">{sec.label}</p>
+                {sec.items.map((item) => (
+                  <div key={item} className="stack-item">{item}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <hr className="rule" style={{ marginTop: "5rem" }} />
+
+        {/* ── EXPERIENCE ── */}
+        <section className="container section-gap" id="experience">
+          <div className="eyebrow">Background</div>
+          <div className="section-header-row" style={{ marginTop: "0.5rem" }}>
+            <h2 className="section-title">Experience</h2>
+          </div>
           <div className="exp-list">
             {EXPERIENCE.map((e, i) => (
               <div key={i} className="exp-item">
-                <div className="exp-icon">{e.icon}</div>
+                <div className="exp-icon-wrap">{e.icon}</div>
                 <div className="exp-body">
                   <div className="exp-row">
                     <span className="exp-title">{e.title}</span>
@@ -947,127 +1471,97 @@ export default function Page() {
           </div>
         </section>
 
-        <hr className="divider" />
+        <hr className="rule" style={{ marginTop: "5rem" }} />
 
-        {/* ── CTA BANNER ───────────────────────── */}
-        <section className="section" style={{ textAlign: "center" }}>
-          <div className="cta-card">
-            <p className="label">Get started</p>
-            <h2 className="h2" style={{ marginTop: "0.375rem" }}>
-              Looking for a frontend or full‑stack intern?
-            </h2>
-            <p className="body" style={{ marginTop: "0.5rem", maxWidth: "22rem", margin: "0.5rem auto 0" }}>
-              I bring production experience shipping AI products from scratch, solo —
-              RAG pipelines, real billing, and mobile-first UIs.
-            </p>
-            <div className="cta-buttons">
-              <a href="#contact" onClick={(e) => handleNavClick(e, "contact")} className="btn-primary">
-                Get in touch →
-              </a>
-              <a
-                href="https://github.com/YOUR_USERNAME"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-outline"
-              >
-                View GitHub
-              </a>
+        {/* ── CONTACT ── */}
+        <section className="container section-gap" id="contact">
+          <div className="eyebrow">Contact</div>
+          <div className="section-header-row" style={{ marginTop: "0.5rem" }}>
+            <h2 className="section-title">Let&rsquo;s build something</h2>
+          </div>
+          <div className="contact-layout">
+            {/* Dark card with links */}
+            <div className="contact-card contact-card-dark">
+              <h3 className="contact-headline contact-headline-inv">
+                Frontend &amp; full‑stack intern.<br />
+                Remote-friendly. Available now.
+              </h3>
+              <p className="contact-body contact-body-inv">
+                I have production experience shipping AI products solo —
+                RAG pipelines, real billing, and mobile-first UIs. If
+                you&rsquo;re building something I&rsquo;d care about, let&rsquo;s talk.
+              </p>
+              <div className="contact-links">
+                <a href="mailto:your@email.com" className="contact-link">
+                  <span className="contact-link-icon">✉️</span>
+                  your@email.com
+                </a>
+                <a
+                  href="https://linkedin.com/in/YOUR_USERNAME"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="contact-link"
+                >
+                  <span className="contact-link-icon">💼</span>
+                  LinkedIn
+                </a>
+                <a
+                  href="https://github.com/YOUR_USERNAME"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="contact-link"
+                >
+                  <span className="contact-link-icon">🐙</span>
+                  GitHub
+                </a>
+                <a
+                  href="https://twitter.com/YOUR_USERNAME"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="contact-link"
+                >
+                  <span className="contact-link-icon">🐦</span>
+                  Twitter / X
+                </a>
+              </div>
+            </div>
+
+            {/* Light card — what I bring */}
+            <div className="contact-card">
+              <h3 className="contact-headline">What I bring</h3>
+              <ul className="contact-fact-list">
+                {[
+                  "Full AI feature development: RAG pipelines, embeddings, Gemini / OpenAI integration",
+                  "Real billing wired from day one — Stripe and Razorpay, including Razorpay Route payouts",
+                  "Next.js App Router, Supabase, pgvector — production experience, not tutorials",
+                  "Backend-first thinking with full-stack delivery",
+                  "Self-directed, async-friendly — I'm used to working alone",
+                  "I ship things. Not demos. Not proof-of-concepts. Things.",
+                ].map((fact, i) => (
+                  <li key={i} className="contact-fact">{fact}</li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>
 
-        <hr className="divider" />
-
-        {/* ── ROADMAP ──────────────────────────── */}
-        <section className="section" id="roadmap">
-          <div className="roadmap-header">
-            <div>
-              <p className="label">Roadmap</p>
-              <h2 className="h2" style={{ marginTop: "0.25rem" }}>What&rsquo;s coming next</h2>
-            </div>
-            <button
-              className="toggle-btn"
-              onClick={() => setShowRoadmap(!showRoadmap)}
-            >
-              {showRoadmap ? "Collapse ▲" : "Expand ▼"}
-            </button>
-          </div>
-
-          {showRoadmap && (
-            <div className="roadmap-grid">
-              {ROADMAP.map((r) => {
-                const st = ROADMAP_STYLES[r.status];
-                return (
-                  <div key={r.title} className="rm-item">
-                    <div className="rm-icon">{r.icon}</div>
-                    <div>
-                      <p className="rm-title">
-                        {r.title}
-                        <span
-                          className="rm-status-badge"
-                          style={{ background: st.bg, color: st.color }}
-                        >
-                          {st.label}
-                        </span>
-                      </p>
-                      <p className="rm-desc">{r.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <hr className="divider" />
-
-        {/* ── CONTACT ──────────────────────────── */}
-        <section className="section" id="contact">
-          <div className="cta-card">
-            <p className="label">Contact</p>
-            <h2 className="h2" style={{ marginTop: "0.375rem" }}>
-              Open to internship opportunities
-            </h2>
-            <p className="body" style={{ marginTop: "0.5rem", maxWidth: "22rem", margin: "0.5rem auto 0" }}>
-              Frontend and full‑stack roles. Remote‑friendly. Let&rsquo;s build something.
-            </p>
-            <div className="cta-buttons">
-              <a href="mailto:your@email.com" className="btn-primary">
-                Email me →
-              </a>
-              <a
-                href="https://linkedin.com/in/YOUR_USERNAME"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-outline"
-              >
-                LinkedIn
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* ── FOOTER ───────────────────────────── */}
+        {/* ── FOOTER ── */}
         <footer className="footer">
           <div className="footer-inner">
-            <div className="footer-brand">
-              <div className="footer-brand-icon">
-                <Image src={IMAGES.footerIcon} alt="Edx Morung" width={24} height={24} />
-              </div>
-              <span className="footer-brand-name">
-                Noba<span> · Edx Morung</span>
-              </span>
-            </div>
-            <div className="footer-links">
-              {["Projects", "Experience", "Roadmap", "Contact"].map((l) => (
-                <a key={l} href={`#${l.toLowerCase()}`} onClick={(e) => handleNavClick(e, l.toLowerCase())}>
+            <span className="footer-brand">
+              Noba <em>· Edx Morung</em>
+            </span>
+            <div className="footer-links-row">
+              {["Work", "About", "Field Notes", "Contact"].map((l) => (
+                <a key={l} href={`#${l.toLowerCase().replace(" ", "-")}`}>
                   {l}
                 </a>
               ))}
             </div>
-            <p className="footer-copy">© {new Date().getFullYear()} Edx Morung</p>
+            <span className="footer-copy">© {new Date().getFullYear()} Edx Morung</span>
           </div>
         </footer>
+
       </div>
     </>
   );
