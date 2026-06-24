@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
+import Logo from "./components/Logo";
 /* ─────────────────────────────────────────────
    IMAGE PATHS — drop your own into /public/images
    The layout is designed to look great even with
@@ -16,7 +16,7 @@ const IMAGES = {
   vizo: "/images/vizo.png",
   morungx: "/images/morungx.png",
   evalyze: "/images/evalyze.png",
-  anime: "/images/anime.png",
+  anime: "/images/anime.png", 
   posturepet: "/images/posturepet.png",
   shepherd: "/images/shepherd.png",
 };
@@ -35,19 +35,19 @@ const PROJECTS = [
     desc: "RAG over NCERT/CBSE PDFs, KaTeX math rendering, AI chapter summaries with PYQ exam prediction, real billing via Stripe & Razorpay. This is the product I'd want to have had in school.",
     tags: ["Next.js 15", "Supabase", "pgvector", "Gemini 2.5", "CBSE/NCERT/NBSE"],
     cats: ["edtech", "ai"],
-    href: "https://vizo.ai",
+    href: "https://vizo-pied-vercel.app",
   },
   {
     id: "morungx",
     image: IMAGES.morungx,
-    name: "MorungX / NagaShelf",
+    name: "peers&shelf",
     issue: "Vol. 02",
     status: "built" as const,
     lede: "A student ecosystem built specifically for Nagaland — used books, notes sharing, peerlancing, campus directory.",
     desc: "Mobile-first for the NE India user base. Used book marketplace, LearnHub notes platform, PeerLancer, and an LMS with Zoom integration. Razorpay Route for payout infrastructure.",
     tags: ["Next.js", "Supabase", "Stripe", "Razorpay Route"],
     cats: ["edtech", "marketplace"],
-    href: "https://morungx.com",
+    href: "",
   },
   {
     id: "evalyze",
@@ -709,6 +709,7 @@ export default function Page() {
           border: 1px solid var(--rule);
           flex-shrink: 0;
           background: #EDE9E1;
+          overflow: hidden;
         }
         .proj-name {
           font-family: 'Space Grotesk', sans-serif;
@@ -1133,9 +1134,9 @@ export default function Page() {
         {/* ── MASTHEAD ── */}
         <header className={`masthead${scrolled ? " scrolled" : ""}`}>
           <div className="masthead-inner">
-            <Link href="/" className="masthead-name">
-              Noba <em>· Edx Morung</em>
-            </Link>
+           <Link href="/" style={{ display: "inline-flex" }}>
+  <Logo variant="pill" size={38} />
+</Link>
             <ul className="masthead-links">
               {[
                 { label: "Work", id: "projects" },
@@ -1158,14 +1159,12 @@ export default function Page() {
 
         {/* ── HERO ── */}
         <div ref={heroRef}>
-          {/* Dateline bar */}
           <div className="hero">
             <div className="hero-top">
               <span className="hero-dateline">
                 <strong>Nagaland, India</strong> — Solo founder &amp; full-stack developer
               </span>
               <span className="open-pill">
-                <span className="open-dot" />
                 Open to internships
               </span>
             </div>
@@ -1202,16 +1201,16 @@ export default function Page() {
               {/* Right: photo + stats */}
               <div className="hero-photo-col">
                 <div className="hero-photo-frame">
-                  {/* Replace src with your real photo */}
-                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #EDE9E1, #DDD9D0)", fontSize: "3rem" }}>
-                    👤
-                  </div>
-                  {/* Uncomment when you have a real photo:
-                  <Image src={IMAGES.hero} alt="Noba" fill style={{ objectFit: "cover" }} />
-                  */}
+                  <Image
+                    src={IMAGES.hero}
+                    alt="Noba"
+                    fill
+                    style={{ objectFit: "cover" }}
+                    priority
+                  />
                 </div>
                 <p className="hero-photo-caption">
-                  Replace with a real photo of you — candid works best.
+                  Building from Nagaland
                 </p>
                 <div className="hero-stats-row">
                   {[
@@ -1291,24 +1290,34 @@ export default function Page() {
           <div style={{ marginTop: "2.5rem" }}>
             <p className="eyebrow" style={{ marginBottom: "1rem" }}>Behind the scenes</p>
             <div className="photos-strip">
-              {[
-                { emoji: "🖥️", label: "The workspace", caption: "Late nights in Nagaland" },
-                { emoji: "📝", label: "Planning sessions", caption: "Whiteboard before code" },
-                { emoji: "🚀", label: "Shipping days", caption: "When it finally works" },
-              ].map((ph, i) => (
-                <div key={i} className="photo-item">
-                  {/* Replace with: <Image src={buildingImages[i]} alt={ph.label} fill style={{objectFit:"cover"}} /> */}
-                  <div className="photo-placeholder">
-                    <span className="photo-placeholder-icon">{ph.emoji}</span>
-                    <span className="photo-placeholder-text">{ph.label}</span>
-                  </div>
-                  <div className="photo-caption">{ph.caption}</div>
-                </div>
-              ))}
+              <div className="photo-item">
+                <Image
+                  src={IMAGES.building1}
+                  alt="Workspace"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
+                <div className="photo-caption">Late nights in Nagaland</div>
+              </div>
+              <div className="photo-item">
+                <Image
+                  src={IMAGES.building2}
+                  alt="Planning sessions"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
+                <div className="photo-caption">Whiteboard before code</div>
+              </div>
+              <div className="photo-item">
+                <Image
+                  src={IMAGES.building3}
+                  alt="Shipping days"
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
+                <div className="photo-caption">When it finally works</div>
+              </div>
             </div>
-            <p style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.625rem", fontStyle: "italic" }}>
-              → Drop your own photos in /public/images and replace the placeholders above.
-            </p>
           </div>
         </section>
 
@@ -1363,12 +1372,15 @@ export default function Page() {
                     </span>
                   </div>
                   <div className="proj-icon-row">
-                    <div
-                      className="proj-icon-img"
-                      style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}
-                    >
-                      {/* Replace with: <Image src={p.image} alt={p.name} width={32} height={32} style={{objectFit:"cover"}} /> */}
-                      📦
+                    <div className="proj-icon-img">
+                      {/* Actual project icon — replace with your own images at /public/images/... */}
+                      <Image
+                        src={p.image}
+                        alt={p.name}
+                        width={32}
+                        height={32}
+                        style={{ objectFit: "cover", borderRadius: "var(--radius)" }}
+                      />
                     </div>
                     <p className="proj-name">{p.name}</p>
                   </div>
@@ -1403,10 +1415,13 @@ export default function Page() {
             {FIELD_NOTES.map((note, i) => (
               <a key={i} href="#" className="note-card">
                 <div className="note-img-wrap">
-                  {/* Replace with: <Image src={note.img} alt={note.title} fill style={{objectFit:"cover"}} /> */}
-                  <div className="note-img-placeholder">
-                    {["🔧", "🌏", "⚡"][i]}
-                  </div>
+                  {/* Actual field note image — replace with your own images at /public/images/build-*.jpg */}
+                  <Image
+                    src={note.img}
+                    alt={note.title}
+                    fill
+                    style={{ objectFit: "cover" }}
+                  />
                 </div>
                 <div className="note-body">
                   <div className="note-meta">

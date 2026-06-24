@@ -1,23 +1,30 @@
 // app/layout.tsx
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Space_Grotesk, Inter } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-display',
+  weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-mono',
+  variable: '--font-sans',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: 'Noba — Developer & Founder',
-  description: 'Interactive desktop portfolio of Noba — Full-Stack Developer & Solo Founder',
+  description: 'Solo founder and full-stack developer building AI products from Nagaland, India. Open to frontend and full-stack internships.',
+  keywords: ['Next.js developer', 'full-stack developer', 'AI', 'Nagaland', 'edtech', 'Supabase', 'Gemini'],
+  openGraph: {
+    title: 'Noba — Developer & Founder',
+    description: 'Building AI products from Northeast India, solo.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
@@ -26,9 +33,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} dark`}>
-      {/* REMOVED h-screen overflow-hidden, added min-h-screen for full-height base */}
-      <body className="font-sans bg-[#080C10] text-[#F1F5F9] antialiased min-h-screen">
+    <html
+      lang="en"
+      className={`${spaceGrotesk.variable} ${inter.variable}`}
+      // No 'dark' class — the editorial theme is light
+    >
+      <body
+        className="font-sans antialiased"
+        style={{
+          background: '#F7F4EF',
+          color: '#1A1A18',
+          minHeight: '100vh',
+        }}
+      >
         {children}
       </body>
     </html>
