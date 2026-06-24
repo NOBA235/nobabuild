@@ -27,7 +27,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} dark`}>
-      <body className="font-sans bg-[#080C10] text-[#F1F5F9] antialiased h-screen overflow-hidden">
+      {/* REMOVED h-screen overflow-hidden, added min-h-screen for full-height base */}
+      <body className="font-sans bg-[#080C10] text-[#F1F5F9] antialiased min-h-screen">
         {children}
       </body>
     </html>
