@@ -1,5 +1,25 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
+
+/* ─────────────────────────────────────────────
+   IMAGE IMPORTS (add your own in /public/images)
+───────────────────────────────────────────── */
+const IMAGES = {
+  vizo: "/images/vizo.png",
+  morungx: "/images/morungx.png",
+  evalyze: "/images/evalyze.png",
+  anime: "/images/anime.png",
+  posturepet: "/images/posturepet.png",
+  shepherd: "/images/shepherd.png",
+  avatar1: "/images/avatar1.png",
+  avatar2: "/images/avatar2.png",
+  avatar3: "/images/avatar3.png",
+  avatar4: "/images/avatar4.png",
+  hero: "/images/hero-illustration.png",
+  footerIcon: "/images/footer-icon.png",
+} as const;
 
 /* ─────────────────────────────────────────────
    DATA
@@ -7,27 +27,27 @@ import { useState } from "react";
 const PROJECTS = [
   {
     id: "vizo",
-    icon: "🎓",
+    image: IMAGES.vizo,
     name: "Vizo AI",
     status: "live" as const,
     desc: "AI-powered STEM tutoring for students aged 13–18. RAG over educational PDFs, KaTeX math rendering, AI chapter summaries, PYQ-based exam prediction, Stripe & Razorpay billing.",
     tags: ["Next.js 15", "Supabase", "pgvector", "Gemini 2.5", "CBSE/NCERT/NBSE"],
     cats: ["edtech", "ai"],
-    href: "#",
+    href: "https://vizo.ai", // replace with real URL
   },
   {
     id: "morungx",
-    icon: "📚",
+    image: IMAGES.morungx,
     name: "MorungX / NagaShelf",
     status: "built" as const,
     desc: "Student ecosystem for Nagaland — used book marketplace, notes sharing (LearnHub), peerlancing, campus directory, and an LMS with Zoom. Mobile-first for the NE India user base.",
     tags: ["Next.js", "Supabase", "Stripe", "Razorpay Route"],
     cats: ["edtech", "marketplace"],
-    href: "#",
+    href: "https://morungx.com", // replace
   },
   {
     id: "evalyze",
-    icon: "📝",
+    image: IMAGES.evalyze,
     name: "Evalyze",
     status: "built" as const,
     desc: "AI answer sheet grading platform built for Devpost. Teachers upload sheets, Gemini 2.5 Flash evaluates and scores responses. Deployed to Vercel + Render.",
@@ -37,7 +57,7 @@ const PROJECTS = [
   },
   {
     id: "anime",
-    icon: "⚔️",
+    image: IMAGES.anime,
     name: "Anime Debate Club",
     status: "built" as const,
     desc: "Real-time blind debate matchmaking. DynamoDB single-table design, later migrated to MongoDB + PostgreSQL for free-tier cost elimination. Live anonymous pairing.",
@@ -47,7 +67,7 @@ const PROJECTS = [
   },
   {
     id: "posturepet",
-    icon: "🐾",
+    image: IMAGES.posturepet,
     name: "PosturePet AI",
     status: "wip" as const,
     desc: "Gamified posture detection using TensorFlow.js MoveNet. Pet evolution stages based on posture score, skeleton overlay visualization. Sit up straight to level up your pet.",
@@ -57,7 +77,7 @@ const PROJECTS = [
   },
   {
     id: "shepherd",
-    icon: "🚌",
+    image: IMAGES.shepherd,
     name: "ShepherdAI",
     status: "built" as const,
     desc: "Transport operations copilot for community event logistics in Nagaland. Manages sumo/shared taxi coordination, manifest tracking, and route planning with Gemini.",
@@ -144,7 +164,7 @@ const STACK = [
 ];
 
 const FILTERS = ["All", "Edtech", "AI", "Marketplace", "Fun"] as const;
-type Filter = typeof FILTERS[number];
+type Filter = (typeof FILTERS)[number];
 
 const STATUS_STYLES = {
   live:  { label: "Live",      bg: "#ECFDF5", color: "#047857" },
@@ -167,6 +187,17 @@ export default function Page() {
 
   const filteredProjects = PROJECTS.filter((p) =>
     activeFilter === "All" || p.cats.includes(activeFilter.toLowerCase())
+  );
+
+  const handleNavClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+      e.preventDefault();
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    },
+    []
   );
 
   return (
@@ -336,11 +367,12 @@ export default function Page() {
           font-weight: 600;
           margin-right: -10px;
           flex-shrink: 0;
+          object-fit: cover;
         }
-        .av-1 { background: #EEEDFE; color: #534AB7; z-index: 4; }
-        .av-2 { background: #E1F5EE; color: #0F6E56; z-index: 3; }
-        .av-3 { background: #FAECE7; color: #993C1D; z-index: 2; }
-        .av-4 { background: #FAEEDA; color: #854F0B; z-index: 1; }
+        .av-1 { background: #EEEDFE; z-index: 4; }
+        .av-2 { background: #E1F5EE; z-index: 3; }
+        .av-3 { background: #FAECE7; z-index: 2; }
+        .av-4 { background: #FAEEDA; z-index: 1; }
 
         .live-pill {
           display: inline-flex;
@@ -516,7 +548,11 @@ export default function Page() {
           justify-content: space-between;
           margin-bottom: 0.5rem;
         }
-        .proj-icon { font-size: 1.25rem; }
+        .proj-icon-img {
+          width: 28px;
+          height: 28px;
+          border-radius: 0.375rem;
+        }
         .proj-status-badge {
           font-size: 0.6875rem;
           font-weight: 500;
@@ -668,6 +704,12 @@ export default function Page() {
           justify-content: center;
           font-size: 0.75rem;
           color: white;
+          overflow: hidden;
+        }
+        .footer-brand-icon img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
         .footer-brand-name {
           font-size: 0.875rem;
@@ -696,14 +738,24 @@ export default function Page() {
         {/* ── NAV ──────────────────────────────── */}
         <div className="nav-wrapper">
           <nav className="nav">
-            <a href="#" className="nav-brand">
+            <Link href="/" className="nav-brand">
               Noba<span> · Edx Morung</span>
-            </a>
+            </Link>
             <div className="nav-links">
-              <a href="#projects">Projects</a>
-              <a href="#experience">Experience</a>
-              <a href="#roadmap">Roadmap</a>
-              <a href="#contact">Contact</a>
+              {[
+                { label: "Projects", id: "projects" },
+                { label: "Experience", id: "experience" },
+                { label: "Roadmap", id: "roadmap" },
+                { label: "Contact", id: "contact" },
+              ].map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={(e) => handleNavClick(e, item.id)}
+                >
+                  {item.label}
+                </a>
+              ))}
             </div>
             <a
               href="/resume.pdf"
@@ -721,10 +773,10 @@ export default function Page() {
           <div className="hero-grid">
             <div>
               <div className="avatar-stack">
-                <div className="av av-1">VZ</div>
-                <div className="av av-2">EV</div>
-                <div className="av av-3">AN</div>
-                <div className="av av-4">MX</div>
+                <Image src={IMAGES.avatar1} alt="VZ" width={36} height={36} className="av av-1" />
+                <Image src={IMAGES.avatar2} alt="EV" width={36} height={36} className="av av-2" />
+                <Image src={IMAGES.avatar3} alt="AN" width={36} height={36} className="av av-3" />
+                <Image src={IMAGES.avatar4} alt="MX" width={36} height={36} className="av av-4" />
               </div>
               <span className="live-pill">
                 <span className="live-dot" />
@@ -734,15 +786,15 @@ export default function Page() {
                 Solo founder building AI products for students in Nagaland
               </h1>
               <p className="body" style={{ marginTop: "0.625rem" }}>
-                I&rsquo;m a frontend &amp; full-stack developer and founder behind Edx Morung
+                I&rsquo;m a frontend &amp; full‑stack developer and founder behind Edx Morung
                 and Vizo AI — shipping real products with RAG pipelines, Supabase,
                 and Gemini from Nagaland, India.
               </p>
               <div className="hero-buttons">
-                <a href="#projects" className="btn-primary">
+                <a href="#projects" onClick={(e) => handleNavClick(e, "projects")} className="btn-primary">
                   View Projects →
                 </a>
-                <a href="#contact" className="btn-outline">
+                <a href="#contact" onClick={(e) => handleNavClick(e, "contact")} className="btn-outline">
                   Get in touch
                 </a>
               </div>
@@ -819,7 +871,6 @@ export default function Page() {
             </a>
           </div>
 
-          {/* Filter row */}
           <div className="filter-row">
             {FILTERS.map((f) => (
               <button
@@ -836,7 +887,7 @@ export default function Page() {
             {filteredProjects.map((p) => {
               const s = STATUS_STYLES[p.status];
               return (
-                <a
+                <Link
                   key={p.id}
                   href={p.href}
                   className="proj-card"
@@ -844,7 +895,13 @@ export default function Page() {
                   rel="noopener noreferrer"
                 >
                   <div className="proj-header">
-                    <span className="proj-icon">{p.icon}</span>
+                    <Image
+                      src={p.image}
+                      alt={p.name}
+                      width={28}
+                      height={28}
+                      className="proj-icon-img"
+                    />
                     <span
                       className="proj-status-badge"
                       style={{ background: s.bg, color: s.color }}
@@ -859,7 +916,7 @@ export default function Page() {
                       <span key={t} className="ptag">{t}</span>
                     ))}
                   </div>
-                </a>
+                </Link>
               );
             })}
           </div>
@@ -897,14 +954,14 @@ export default function Page() {
           <div className="cta-card">
             <p className="label">Get started</p>
             <h2 className="h2" style={{ marginTop: "0.375rem" }}>
-              Looking for a frontend or full-stack intern?
+              Looking for a frontend or full‑stack intern?
             </h2>
             <p className="body" style={{ marginTop: "0.5rem", maxWidth: "22rem", margin: "0.5rem auto 0" }}>
               I bring production experience shipping AI products from scratch, solo —
               RAG pipelines, real billing, and mobile-first UIs.
             </p>
             <div className="cta-buttons">
-              <a href="#contact" className="btn-primary">
+              <a href="#contact" onClick={(e) => handleNavClick(e, "contact")} className="btn-primary">
                 Get in touch →
               </a>
               <a
@@ -972,7 +1029,7 @@ export default function Page() {
               Open to internship opportunities
             </h2>
             <p className="body" style={{ marginTop: "0.5rem", maxWidth: "22rem", margin: "0.5rem auto 0" }}>
-              Frontend and full-stack roles. Remote-friendly. Let&rsquo;s build something.
+              Frontend and full‑stack roles. Remote‑friendly. Let&rsquo;s build something.
             </p>
             <div className="cta-buttons">
               <a href="mailto:your@email.com" className="btn-primary">
@@ -994,20 +1051,23 @@ export default function Page() {
         <footer className="footer">
           <div className="footer-inner">
             <div className="footer-brand">
-              <div className="footer-brand-icon">📚</div>
+              <div className="footer-brand-icon">
+                <Image src={IMAGES.footerIcon} alt="Edx Morung" width={24} height={24} />
+              </div>
               <span className="footer-brand-name">
                 Noba<span> · Edx Morung</span>
               </span>
             </div>
             <div className="footer-links">
               {["Projects", "Experience", "Roadmap", "Contact"].map((l) => (
-                <a key={l} href={`#${l.toLowerCase()}`}>{l}</a>
+                <a key={l} href={`#${l.toLowerCase()}`} onClick={(e) => handleNavClick(e, l.toLowerCase())}>
+                  {l}
+                </a>
               ))}
             </div>
-            <p className="footer-copy">© 2025 Edx Morung</p>
+            <p className="footer-copy">© {new Date().getFullYear()} Edx Morung</p>
           </div>
         </footer>
-
       </div>
     </>
   );
