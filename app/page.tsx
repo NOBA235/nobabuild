@@ -1,704 +1,1014 @@
-// app/page.tsx
-'use client';
+"use client";
+import { useState } from "react";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  Mail,
-  Folder,
-  Code,
-  Briefcase,
-  GraduationCap,
-  Image,
-  Trophy,
-  FileText,
-  Zap,
-  MapPin,
-  Star,
-  ArrowUpRight,
-  ChevronRight,
-  X,
-  Minus,
-  Square,
-} from 'lucide-react';
+/* ─────────────────────────────────────────────
+   DATA
+───────────────────────────────────────────── */
+const PROJECTS = [
+  {
+    id: "vizo",
+    icon: "🎓",
+    name: "Vizo AI",
+    status: "live" as const,
+    desc: "AI-powered STEM tutoring for students aged 13–18. RAG over educational PDFs, KaTeX math rendering, AI chapter summaries, PYQ-based exam prediction, Stripe & Razorpay billing.",
+    tags: ["Next.js 15", "Supabase", "pgvector", "Gemini 2.5", "CBSE/NCERT/NBSE"],
+    cats: ["edtech", "ai"],
+    href: "#",
+  },
+  {
+    id: "morungx",
+    icon: "📚",
+    name: "MorungX / NagaShelf",
+    status: "built" as const,
+    desc: "Student ecosystem for Nagaland — used book marketplace, notes sharing (LearnHub), peerlancing, campus directory, and an LMS with Zoom. Mobile-first for the NE India user base.",
+    tags: ["Next.js", "Supabase", "Stripe", "Razorpay Route"],
+    cats: ["edtech", "marketplace"],
+    href: "#",
+  },
+  {
+    id: "evalyze",
+    icon: "📝",
+    name: "Evalyze",
+    status: "built" as const,
+    desc: "AI answer sheet grading platform built for Devpost. Teachers upload sheets, Gemini 2.5 Flash evaluates and scores responses. Deployed to Vercel + Render.",
+    tags: ["MERN", "Gemini 2.5", "Vercel", "Render"],
+    cats: ["ai"],
+    href: "#",
+  },
+  {
+    id: "anime",
+    icon: "⚔️",
+    name: "Anime Debate Club",
+    status: "built" as const,
+    desc: "Real-time blind debate matchmaking. DynamoDB single-table design, later migrated to MongoDB + PostgreSQL for free-tier cost elimination. Live anonymous pairing.",
+    tags: ["Real-time", "MongoDB", "PostgreSQL", "DynamoDB"],
+    cats: ["fun", "ai"],
+    href: "#",
+  },
+  {
+    id: "posturepet",
+    icon: "🐾",
+    name: "PosturePet AI",
+    status: "wip" as const,
+    desc: "Gamified posture detection using TensorFlow.js MoveNet. Pet evolution stages based on posture score, skeleton overlay visualization. Sit up straight to level up your pet.",
+    tags: ["TensorFlow.js", "MoveNet", "Next.js"],
+    cats: ["fun", "ai"],
+    href: "#",
+  },
+  {
+    id: "shepherd",
+    icon: "🚌",
+    name: "ShepherdAI",
+    status: "built" as const,
+    desc: "Transport operations copilot for community event logistics in Nagaland. Manages sumo/shared taxi coordination, manifest tracking, and route planning with Gemini.",
+    tags: ["Next.js", "MongoDB", "Gemini"],
+    cats: ["ai"],
+    href: "#",
+  },
+];
 
-// ---------- Types ----------
-interface WindowState {
-  id: string;
-  key: string;
-  title: string;
-  crumb: string;
-  icon: React.ReactNode;
-  content: React.ReactNode;
-  position: { x: number; y: number };
-  size: { w: number; h: number };
-  minimized: boolean;
-  maximized: boolean;
-  prevSize?: { w: number; h: number; x: number; y: number };
-  zIndex: number;
-}
+const EXPERIENCE = [
+  {
+    icon: "🏛️",
+    title: "Founder — Edx Morung / MorungX",
+    period: "2024 – present",
+    sub: "Sole proprietorship · Nagaland, India",
+    desc: "Registered sole prop building AI-powered edtech for students across CBSE, NCERT, NBSE, IGCSE, IB, and AP curricula. GST/Udyam registered. Razorpay Route for payout infrastructure.",
+  },
+  {
+    icon: "📖",
+    title: "Technical Author — Node.js Auth Ebook",
+    period: "2025",
+    sub: "Self-published · Production-grade guide",
+    desc: "Production-grade Node.js authentication ebook with full MERN companion codebase: JWT refresh rotation, Redis blacklisting, BullMQ, and rate limiting.",
+  },
+  {
+    icon: "🏆",
+    title: "Hackathon Participant",
+    period: "2024 – 2025",
+    sub: "Devpost · Moonshot",
+    desc: "Built Evalyze for Devpost. Competing in Moonshot Hackathon with the Negative Results Engine — a zero-to-one idea leveraging existing RAG and embeddings experience.",
+  },
+  {
+    icon: "💻",
+    title: "Self-taught Full-stack Developer",
+    period: "2023 – present",
+    sub: "Learn-by-building approach",
+    desc: "Systematic self-study through React, MongoDB, and backend patterns while shipping production products in parallel. Backend-first with Next.js App Router as primary frontend framework.",
+  },
+];
 
-interface Achievement {
-  id: string;
-  title: string;
-  desc: string;
-  emoji: string;
-}
+const ROADMAP = [
+  {
+    icon: "🧠",
+    title: "Negative Results Engine",
+    status: "active" as const,
+    desc: "Moonshot Hackathon entry — surfaces failed experiments so researchers don't repeat dead ends. RAG + embeddings core.",
+  },
+  {
+    icon: "🚕",
+    title: "Sumo Booking SaaS",
+    status: "soon" as const,
+    desc: "B2B SaaS for shared taxi booking and manifest management for intercity counter operators in NE India.",
+  },
+  {
+    icon: "🖥️",
+    title: "Terminal Portfolio v2",
+    status: "soon" as const,
+    desc: "Gamified OS-aesthetic portfolio — XP/HUD elements, quest-style project cards, dark terminal theme in Next.js.",
+  },
+  {
+    icon: "📄",
+    title: "Internship Applications",
+    status: "soon" as const,
+    desc: "Frontend and full-stack Typst resumes targeting remote internship roles. Applications actively in progress.",
+  },
+  {
+    icon: "📚",
+    title: "Vizo AI v2",
+    status: "later" as const,
+    desc: "Expand to AP and IB curricula, add voice tutor, improve PYQ prediction accuracy with fine-tuned embeddings.",
+  },
+  {
+    icon: "🤝",
+    title: "Peerlancer Marketplace",
+    status: "later" as const,
+    desc: "Spin up the tutoring and peerlancing marketplace from MorungX as a standalone product with Razorpay Route payouts.",
+  },
+];
 
-// ---------- Content Data ----------
-const sections = {
-  projects: {
-    title: 'projects',
-    crumb: '~/noba/projects',
-    icon: <Folder className="text-blue-400" size={18} />,
-    content: (
-      <div>
-        <div className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">featured work</div>
-        <h2 className="text-2xl font-bold tracking-tight mb-1">Things I've Built</h2>
-        <p className="text-sm text-gray-400 mb-6">Solo-built, shipped, and maintained from Nagaland. AI-powered edtech, developer tools, and community platforms.</p>
-        <ProjectsFilter />
-      </div>
-    ),
-  },
-  skills: {
-    title: 'skills.json',
-    crumb: '~/noba/skills',
-    icon: <Code className="text-green-400" size={18} />,
-    content: <SkillsContent />,
-  },
-  experience: {
-    title: 'experience.md',
-    crumb: '~/noba/work',
-    icon: <Briefcase className="text-purple-400" size={18} />,
-    content: <ExperienceContent />,
-  },
-  education: {
-    title: 'education.txt',
-    crumb: '~/noba/edu',
-    icon: <GraduationCap className="text-orange-400" size={18} />,
-    content: <EducationContent />,
-  },
-  gallery: {
-    title: 'gallery/',
-    crumb: '~/noba/gallery',
-    icon: <Image className="text-sky-400" size={18} />,
-    content: <GalleryContent />,
-  },
-  achievements: {
-    title: 'wins.log',
-    crumb: '~/noba/wins',
-    icon: <Trophy className="text-yellow-400" size={18} />,
-    content: <AchievementsContent />,
-  },
-  contact: {
-    title: 'contact.card',
-    crumb: '~/noba/contact',
-    icon: <Mail className="text-emerald-400" size={18} />,
-    content: <ContactContent />,
-  },
-  resume: {
-    title: 'resume.typst',
-    crumb: '~/noba/resume',
-    icon: <FileText className="text-violet-400" size={18} />,
-    content: <ResumeContent />,
-  },
+const STACK = [
+  "Next.js 15/16", "Supabase", "pgvector", "Gemini 2.5 Flash",
+  "OpenAI Embeddings", "TypeScript", "Stripe", "Razorpay",
+  "MongoDB", "MERN", "TensorFlow.js", "Tailwind CSS",
+];
+
+const FILTERS = ["All", "Edtech", "AI", "Marketplace", "Fun"] as const;
+type Filter = typeof FILTERS[number];
+
+const STATUS_STYLES = {
+  live:  { label: "Live",      bg: "#ECFDF5", color: "#047857" },
+  built: { label: "Built",     bg: "#EEF2FF", color: "#4338CA" },
+  wip:   { label: "WIP",       bg: "#FEF3C7", color: "#B45309" },
 };
 
-// ---------- Sub-components for window content ----------
-function ProjectsFilter() {
-  const [filter, setFilter] = useState('all');
-  const projects = [
-    { cat: 'ai', title: 'Vizo AI', tag: 'AI · Edtech', desc: 'AI STEM tutoring platform for ages 13–18. RAG over educational PDFs, KaTeX math rendering, chapter summariser, PYQ-based exam prediction.', stack: ['Next.js 15', 'Supabase', 'pgvector', 'Gemini 2.5', 'OpenAI Embeddings', 'Stripe'] },
-    { cat: 'ai', title: 'Evalyze', tag: 'AI · Grading', desc: 'AI answer-sheet grading platform. Gemini 2.5 Flash grades handwritten/typed answers with rubric-based feedback.', stack: ['MongoDB', 'Express', 'React', 'Node.js', 'Gemini 2.5'] },
-    { cat: 'fs', title: 'MorungX / NagaShelf', tag: 'Full Stack', desc: 'Student ecosystem for Nagaland: used-book marketplace, NBSE notes sharing, peerlancing, campus directory, LMS with Zoom.', stack: ['Next.js', 'Supabase', 'Tailwind', 'Stripe', 'Razorpay'] },
-    { cat: 'ai', title: 'PosturePet AI', tag: 'AI · Browser', desc: 'Gamified posture detection using TensorFlow.js MoveNet. Real-time skeleton overlay + pet evolution.', stack: ['TensorFlow.js', 'MoveNet', 'React', 'Canvas API'] },
-    { cat: 'fs', title: 'ShepherdAI', tag: 'Full Stack', desc: 'Transport operations copilot for community event logistics in Northeast India.', stack: ['Next.js', 'MongoDB', 'Gemini'] },
-    { cat: 'fs', title: 'Anime Debate Club', tag: 'Full Stack', desc: 'Real-time blind debate matchmaking — users paired anonymously to debate anime topics.', stack: ['React', 'Node.js', 'WebSockets', 'DynamoDB', 'MongoDB'] },
-    { cat: 'tool', title: 'Node.js Auth Ebook', tag: 'Technical Writing', desc: 'Production-grade authentication guide with full MERN companion codebase.', stack: ['Node.js', 'JWT', 'Redis', 'BullMQ', 'MERN'] },
-    { cat: 'fs', title: 'Terminal Portfolio', tag: 'Portfolio', desc: 'Previous portfolio with dark OS aesthetic, XP/HUD elements, quest-style cards.', stack: ['Next.js', 'Tailwind', 'Framer Motion'] },
-  ];
+const ROADMAP_STYLES = {
+  active: { label: "Active", bg: "#ECFDF5", color: "#047857" },
+  soon:   { label: "Soon",   bg: "#EEF2FF", color: "#4338CA" },
+  later:  { label: "Later",  bg: "#F4F4F5", color: "#52525B" },
+};
 
-  const filtered = filter === 'all' ? projects : projects.filter(p => p.cat === filter);
+/* ─────────────────────────────────────────────
+   PAGE
+───────────────────────────────────────────── */
+export default function Page() {
+  const [activeFilter, setActiveFilter] = useState<Filter>("All");
+  const [showRoadmap, setShowRoadmap] = useState(false);
 
-  return (
-    <div>
-      <div className="flex gap-2 mb-4">
-        {['all', 'ai', 'fs', 'tool'].map(cat => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`px-3 py-1 rounded-full text-xs font-mono border ${filter === cat ? 'border-blue-400 text-blue-400 bg-blue-400/10' : 'border-white/10 text-gray-400 hover:border-blue-400/50'}`}
-          >
-            {cat === 'all' ? 'All' : cat === 'ai' ? 'AI / ML' : cat === 'fs' ? 'Full Stack' : 'Tools'}
-          </button>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {filtered.map((proj, i) => (
-          <div key={i} className="bg-[#1a2234] border border-white/10 rounded-xl p-4 flex flex-col gap-2 hover:border-blue-400/30 transition">
-            <div className="flex justify-between items-start">
-              <h3 className="font-semibold text-sm">{proj.title}</h3>
-              <span className={`text-xs font-mono px-2 py-0.5 rounded-full border ${proj.cat === 'ai' ? 'border-purple-400/30 text-purple-400 bg-purple-400/5' : proj.cat === 'fs' ? 'border-blue-400/30 text-blue-400 bg-blue-400/5' : 'border-orange-400/30 text-orange-400 bg-orange-400/5'}`}>{proj.tag}</span>
-            </div>
-            <p className="text-xs text-gray-400 leading-relaxed">{proj.desc}</p>
-            <div className="flex flex-wrap gap-1">
-              {proj.stack.map(s => <span key={s} className="text-[10px] font-mono text-gray-500 bg-[#232f46] px-1.5 py-0.5 rounded">{s}</span>)}
-            </div>
-            <div className="flex gap-2 mt-1">
-              <a href="#" className="text-xs font-mono text-blue-400 border border-blue-400/25 px-2 py-1 rounded flex items-center gap-1 hover:bg-blue-400/10">Live <ArrowUpRight size={11} /></a>
-              <a href="#" className="text-xs font-mono text-blue-400 border border-blue-400/25 px-2 py-1 rounded flex items-center gap-1 hover:bg-blue-400/10">GitHub <ArrowUpRight size={11} /></a>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+  const filteredProjects = PROJECTS.filter((p) =>
+    activeFilter === "All" || p.cats.includes(activeFilter.toLowerCase())
   );
-}
 
-function SkillsContent() {
-  const groups = [
-    { color: '#60A5FA', title: 'Frontend', skills: ['React', 'Next.js 15/16', 'TypeScript', 'Tailwind CSS', 'KaTeX', 'Framer Motion', 'TensorFlow.js', 'Canvas API'] },
-    { color: '#34D399', title: 'Backend', skills: ['Node.js', 'Express', 'REST APIs', 'JWT Auth', 'Redis', 'BullMQ', 'WebSockets', 'Rate Limiting'] },
-    { color: '#C4B5FD', title: 'AI & Data', skills: ['Gemini 2.5 Flash', 'OpenAI Embeddings', 'RAG Pipelines', 'pgvector', 'Cosine Similarity', 'Prompt Engineering', 'MoveNet'] },
-    { color: '#FB923C', title: 'Databases', skills: ['Supabase', 'PostgreSQL', 'MongoDB', 'DynamoDB', 'Redis'] },
-    { color: '#FBBF24', title: 'Tools & Infra', skills: ['Git & GitHub', 'Vercel', 'Render', 'Stripe', 'Razorpay', 'Typst', 'tsx', 'Python', 'Bash'] },
-  ];
   return (
-    <div>
-      <div className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">stack overview</div>
-      <h2 className="text-2xl font-bold tracking-tight mb-1">What I Work With</h2>
-      <p className="text-sm text-gray-400 mb-6">Backend-first, shipping products end-to-end solo.</p>
-      {groups.map(g => (
-        <div key={g.title} className="mb-5">
-          <div className="flex items-center gap-2 text-xs font-mono text-gray-500 uppercase tracking-wider mb-2">
-            <span style={{ color: g.color }}>{g.title}</span>
-            <span className="flex-1 h-px bg-white/10" />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {g.skills.map(s => (
-              <span key={s} className="px-3 py-1.5 rounded-full text-xs font-mono border border-white/10 bg-[#1a2234] text-gray-300 hover:border-blue-400/30 hover:text-blue-400 transition cursor-default">
-                {s}
+    <>
+      <style>{`
+        /* ── Reset ─────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── Root ──────────────────────────────── */
+        .pc {
+          background: #FAFAFA;
+          color: #18181B;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          line-height: 1.5;
+          min-height: 100vh;
+        }
+
+        /* ── Layout ────────────────────────────── */
+        .section {
+          padding: 3rem 1.25rem;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        @media (min-width: 640px) { .section { padding: 4rem 1.5rem; } }
+        @media (min-width: 1024px) { .section { padding: 5rem 2rem; } }
+
+        .divider {
+          border: none;
+          border-top: 1px solid #E4E4E7;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        /* ── Typography ────────────────────────── */
+        .label {
+          font-size: 0.7rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: #A1A1AA;
+        }
+        .h1 {
+          font-size: 1.75rem;
+          font-weight: 700;
+          line-height: 1.2;
+          color: #18181B;
+        }
+        @media (min-width: 640px) { .h1 { font-size: 2.25rem; } }
+        .h2 {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #18181B;
+        }
+        .body {
+          font-size: 0.9rem;
+          color: #52525B;
+          line-height: 1.65;
+        }
+        .muted { font-size: 0.8rem; color: #A1A1AA; }
+
+        /* ── Buttons ───────────────────────────── */
+        .btn-primary {
+          display: inline-block;
+          border-radius: 0.5rem;
+          background: #18181B;
+          border: none;
+          padding: 0.6rem 1.25rem;
+          font-size: 0.85rem;
+          font-weight: 500;
+          color: #FAFAFA;
+          cursor: pointer;
+          text-decoration: none;
+          transition: opacity 0.15s;
+        }
+        .btn-primary:hover { opacity: 0.8; }
+        .btn-outline {
+          display: inline-block;
+          border-radius: 0.5rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 0.6rem 1.25rem;
+          font-size: 0.85rem;
+          font-weight: 500;
+          color: #18181B;
+          cursor: pointer;
+          text-decoration: none;
+          transition: border-color 0.2s;
+        }
+        .btn-outline:hover { border-color: #A1A1AA; }
+
+        /* ── Nav ───────────────────────────────── */
+        .nav-wrapper {
+          border-bottom: 1px solid #E4E4E7;
+          background: rgba(250,250,250,0.9);
+          backdrop-filter: blur(8px);
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+        .nav {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem 1.25rem;
+          max-width: 900px;
+          margin: 0 auto;
+          gap: 1rem;
+        }
+        .nav-brand {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #18181B;
+          text-decoration: none;
+        }
+        .nav-brand span { color: #A1A1AA; font-weight: 400; }
+        .nav-links {
+          display: flex;
+          gap: 1.25rem;
+        }
+        @media (max-width: 480px) { .nav-links { display: none; } }
+        .nav-links a {
+          font-size: 0.8125rem;
+          color: #52525B;
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .nav-links a:hover { color: #18181B; }
+        .nav-cta {
+          border-radius: 0.5rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 0.375rem 0.875rem;
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: #18181B;
+          cursor: pointer;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: background 0.15s;
+        }
+        .nav-cta:hover { background: #F4F4F5; }
+
+        /* ── Hero ──────────────────────────────── */
+        .hero-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 2rem;
+          align-items: center;
+        }
+        @media (min-width: 768px) {
+          .hero-grid { grid-template-columns: 1fr 1fr; gap: 3rem; }
+        }
+
+        .avatar-stack {
+          display: flex;
+          margin-bottom: 0.75rem;
+        }
+        .av {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 2px solid #FAFAFA;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          margin-right: -10px;
+          flex-shrink: 0;
+        }
+        .av-1 { background: #EEEDFE; color: #534AB7; z-index: 4; }
+        .av-2 { background: #E1F5EE; color: #0F6E56; z-index: 3; }
+        .av-3 { background: #FAECE7; color: #993C1D; z-index: 2; }
+        .av-4 { background: #FAEEDA; color: #854F0B; z-index: 1; }
+
+        .live-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          padding: 3px 10px;
+          border-radius: 999px;
+          background: #ECFDF5;
+          color: #047857;
+          margin-bottom: 0.875rem;
+        }
+        .live-dot {
+          width: 6px; height: 6px;
+          border-radius: 50%;
+          background: #10B981;
+          display: inline-block;
+        }
+
+        .hero-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.625rem;
+          margin-top: 1.25rem;
+        }
+        .hero-free-text {
+          font-size: 0.7rem;
+          color: #A1A1AA;
+          margin-top: 0.875rem;
+        }
+
+        .hero-stats-card {
+          border-radius: 0.875rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 1.25rem;
+        }
+        .stats-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+        }
+        .stat-item { text-align: center; }
+        .stat-num {
+          font-size: 1.375rem;
+          font-weight: 700;
+          color: #18181B;
+          line-height: 1;
+        }
+        .stat-lbl {
+          font-size: 0.6875rem;
+          color: #A1A1AA;
+          margin-top: 0.25rem;
+        }
+        .stack-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+          border-top: 1px solid #F4F4F5;
+          padding-top: 0.875rem;
+          margin-top: 0.5rem;
+        }
+        .stag {
+          font-size: 0.6875rem;
+          padding: 3px 8px;
+          border-radius: 0.375rem;
+          border: 1px solid #E4E4E7;
+          background: #FAFAFA;
+          color: #52525B;
+        }
+
+        /* ── How It Works ──────────────────────── */
+        .steps-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.625rem;
+          margin-top: 1.25rem;
+        }
+        @media (min-width: 640px) { .steps-grid { grid-template-columns: repeat(4, 1fr); } }
+        .step-card {
+          border-radius: 0.875rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 1rem;
+          transition: border-color 0.2s;
+        }
+        .step-card:hover { border-color: #A1A1AA; }
+        .step-number {
+          font-size: 0.7rem;
+          font-weight: 600;
+          color: #D4D4D8;
+          margin-bottom: 0.625rem;
+        }
+        .step-icon { font-size: 1.125rem; margin-bottom: 0.375rem; }
+        .step-title { font-size: 0.8125rem; font-weight: 600; color: #18181B; }
+        .step-desc {
+          font-size: 0.75rem;
+          color: #71717A;
+          line-height: 1.4;
+          margin-top: 0.25rem;
+        }
+
+        /* ── Projects ──────────────────────────── */
+        .section-header {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          margin-bottom: 1.25rem;
+          gap: 1rem;
+        }
+        .view-all {
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: #18181B;
+          text-decoration: underline;
+          background: none;
+          border: none;
+          cursor: pointer;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        .view-all:hover { text-decoration: none; }
+
+        .filter-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin-bottom: 1rem;
+        }
+        .filter-btn {
+          font-size: 0.75rem;
+          padding: 4px 14px;
+          border-radius: 999px;
+          border: 1px solid #E4E4E7;
+          background: white;
+          color: #52525B;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .filter-btn:hover { border-color: #A1A1AA; }
+        .filter-btn.active {
+          background: #18181B;
+          color: white;
+          border-color: #18181B;
+        }
+
+        .projects-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0.625rem;
+        }
+        @media (min-width: 600px) { .projects-grid { grid-template-columns: 1fr 1fr; } }
+
+        .proj-card {
+          border-radius: 0.875rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 1.125rem;
+          cursor: pointer;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          text-decoration: none;
+          display: block;
+        }
+        .proj-card:hover {
+          border-color: #A1A1AA;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .proj-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          margin-bottom: 0.5rem;
+        }
+        .proj-icon { font-size: 1.25rem; }
+        .proj-status-badge {
+          font-size: 0.6875rem;
+          font-weight: 500;
+          padding: 2px 8px;
+          border-radius: 999px;
+          flex-shrink: 0;
+        }
+        .proj-name { font-size: 0.875rem; font-weight: 600; color: #18181B; }
+        .proj-desc { font-size: 0.8125rem; color: #52525B; line-height: 1.5; margin-top: 0.25rem; }
+        .proj-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          margin-top: 0.75rem;
+        }
+        .ptag {
+          font-size: 0.6875rem;
+          padding: 2px 7px;
+          border-radius: 0.375rem;
+          border: 1px solid #E4E4E7;
+          color: #71717A;
+        }
+
+        /* ── Experience ────────────────────────── */
+        .exp-list { display: flex; flex-direction: column; gap: 0.625rem; }
+        .exp-item {
+          display: flex;
+          gap: 0.875rem;
+          border-radius: 0.875rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 1rem 1.125rem;
+          transition: border-color 0.2s;
+        }
+        .exp-item:hover { border-color: #A1A1AA; }
+        .exp-icon { font-size: 1.125rem; margin-top: 2px; flex-shrink: 0; }
+        .exp-body { flex: 1; min-width: 0; }
+        .exp-row {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+        .exp-title { font-size: 0.875rem; font-weight: 600; color: #18181B; }
+        .exp-period { font-size: 0.75rem; color: #A1A1AA; flex-shrink: 0; }
+        .exp-sub { font-size: 0.75rem; color: #A1A1AA; margin-top: 2px; }
+        .exp-desc { font-size: 0.8125rem; color: #52525B; line-height: 1.5; margin-top: 0.375rem; }
+
+        /* ── CTA Banner ────────────────────────── */
+        .cta-card {
+          border-radius: 0.875rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 2rem;
+          text-align: center;
+          max-width: 440px;
+          margin: 0 auto;
+        }
+        .cta-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 0.625rem;
+          margin-top: 1.25rem;
+        }
+
+        /* ── Roadmap ───────────────────────────── */
+        .roadmap-header {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          margin-bottom: 1.25rem;
+        }
+        .toggle-btn {
+          border-radius: 0.5rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 0.375rem 0.875rem;
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: #18181B;
+          cursor: pointer;
+          transition: border-color 0.2s;
+        }
+        .toggle-btn:hover { border-color: #A1A1AA; }
+        .roadmap-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0.625rem;
+        }
+        @media (min-width: 640px) { .roadmap-grid { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 900px) { .roadmap-grid { grid-template-columns: 1fr 1fr 1fr; } }
+        .rm-item {
+          display: flex;
+          gap: 0.625rem;
+          border-radius: 0.875rem;
+          border: 1px solid #E4E4E7;
+          background: white;
+          padding: 1rem;
+          transition: border-color 0.2s;
+        }
+        .rm-item:hover { border-color: #A1A1AA; }
+        .rm-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+        .rm-title { font-size: 0.8125rem; font-weight: 600; color: #18181B; }
+        .rm-status-badge {
+          font-size: 0.625rem;
+          font-weight: 500;
+          padding: 1px 6px;
+          border-radius: 999px;
+          vertical-align: middle;
+          margin-left: 5px;
+        }
+        .rm-desc { font-size: 0.75rem; color: #71717A; line-height: 1.4; margin-top: 0.25rem; }
+
+        /* ── Footer ────────────────────────────── */
+        .footer {
+          border-top: 1px solid #E4E4E7;
+          padding: 1.5rem 1.25rem;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        .footer-inner {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.875rem;
+          text-align: center;
+        }
+        @media (min-width: 640px) {
+          .footer-inner {
+            flex-direction: row;
+            justify-content: space-between;
+            text-align: left;
+          }
+        }
+        .footer-brand {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        .footer-brand-icon {
+          width: 1.5rem;
+          height: 1.5rem;
+          border-radius: 0.375rem;
+          background: #18181B;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.75rem;
+          color: white;
+        }
+        .footer-brand-name {
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: #18181B;
+        }
+        .footer-brand-name span { color: #A1A1AA; font-weight: 400; }
+        .footer-links {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 1rem;
+        }
+        .footer-links a {
+          font-size: 0.75rem;
+          color: #71717A;
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+        .footer-links a:hover { color: #18181B; }
+        .footer-copy { font-size: 0.75rem; color: #A1A1AA; }
+      `}</style>
+
+      <div className="pc">
+
+        {/* ── NAV ──────────────────────────────── */}
+        <div className="nav-wrapper">
+          <nav className="nav">
+            <a href="#" className="nav-brand">
+              Noba<span> · Edx Morung</span>
+            </a>
+            <div className="nav-links">
+              <a href="#projects">Projects</a>
+              <a href="#experience">Experience</a>
+              <a href="#roadmap">Roadmap</a>
+              <a href="#contact">Contact</a>
+            </div>
+            <a
+              href="/resume.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-cta"
+            >
+              Resume ↗
+            </a>
+          </nav>
+        </div>
+
+        {/* ── HERO ─────────────────────────────── */}
+        <section className="section" id="hero">
+          <div className="hero-grid">
+            <div>
+              <div className="avatar-stack">
+                <div className="av av-1">VZ</div>
+                <div className="av av-2">EV</div>
+                <div className="av av-3">AN</div>
+                <div className="av av-4">MX</div>
+              </div>
+              <span className="live-pill">
+                <span className="live-dot" />
+                Open to internships
               </span>
+              <h1 className="h1">
+                Solo founder building AI products for students in Nagaland
+              </h1>
+              <p className="body" style={{ marginTop: "0.625rem" }}>
+                I&rsquo;m a frontend &amp; full-stack developer and founder behind Edx Morung
+                and Vizo AI — shipping real products with RAG pipelines, Supabase,
+                and Gemini from Nagaland, India.
+              </p>
+              <div className="hero-buttons">
+                <a href="#projects" className="btn-primary">
+                  View Projects →
+                </a>
+                <a href="#contact" className="btn-outline">
+                  Get in touch
+                </a>
+              </div>
+              <p className="hero-free-text">
+                Next.js · Supabase · Gemini · pgvector · Tailwind
+              </p>
+            </div>
+
+            <div className="hero-stats-card">
+              <p className="label" style={{ marginBottom: "0.875rem" }}>By the numbers</p>
+              <div className="stats-row">
+                <div className="stat-item">
+                  <div className="stat-num">6+</div>
+                  <div className="stat-lbl">Products shipped</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-num">3</div>
+                  <div className="stat-lbl">Hackathons</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-num">1</div>
+                  <div className="stat-lbl">Sole prop.</div>
+                </div>
+              </div>
+              <p className="label">Core stack</p>
+              <div className="stack-tags">
+                {STACK.map((t) => (
+                  <span key={t} className="stag">{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr className="divider" />
+
+        {/* ── HOW IT WORKS ─────────────────────── */}
+        <section className="section">
+          <p className="label">How I work</p>
+          <h2 className="h2">From idea to production, solo</h2>
+          <div className="steps-grid">
+            {[
+              ["💡", "Spot a gap", "Real problems in Nagaland / NE India — students, logistics, edtech"],
+              ["🎨", "Design fast", "Mobile-first UI, Next.js App Router, Tailwind CSS system"],
+              ["🤖", "Add AI", "RAG pipelines, embeddings, Gemini 2.5, pgvector cosine similarity"],
+              ["🚀", "Ship it", "Vercel / Render, Supabase, real billing with Stripe & Razorpay"],
+            ].map(([icon, title, desc], i) => (
+              <div key={i} className="step-card">
+                <p className="step-number">{String(i + 1).padStart(2, "0")}</p>
+                <div className="step-icon">{icon}</div>
+                <p className="step-title">{title}</p>
+                <p className="step-desc">{desc}</p>
+              </div>
             ))}
           </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+        </section>
 
-function ExperienceContent() {
-  return (
-    <div>
-      <div className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">work history</div>
-      <h2 className="text-2xl font-bold tracking-tight mb-1">Experience</h2>
-      <p className="text-sm text-gray-400 mb-6">Self-driven — building products with real users from Nagaland.</p>
-      <div className="relative pl-7 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-blue-400 before:to-purple-600">
-        <TimelineItem dotColor="bg-green-500" period="2024 — Present" title="Solo Founder & Full-Stack Developer" company="Edx Morung / MorungX · Nagaland" items={['Built Vizo AI — RAG-powered STEM tutoring', 'Shipped entire product solo: AI, Stripe, KaTeX', 'Founded Edx Morung: GST, Udyam, Razorpay', 'Built MorungX — student ecosystem', '6+ production products independently']} />
-        <TimelineItem dotColor="bg-blue-500" period="2024" title="Hackathon Participant" company="Devpost · Remote" items={['Built Evalyze — AI answer-sheet grader', 'Gemini 2.5 Flash for rubric-based grading']} />
-        <TimelineItem dotColor="bg-purple-500" period="2023 — 2024" title="Freelance Full-Stack Developer" company="Self-employed · Nagaland" items={['MERN & Next.js apps for local clients', 'Remote exam proctoring app with face-api.js', 'Established engineering patterns (lazy singleton, single-table DB)']} />
-      </div>
-    </div>
-  );
-}
+        <hr className="divider" />
 
-function TimelineItem({ dotColor, period, title, company, items }: { dotColor: string; period: string; title: string; company: string; items: string[] }) {
-  return (
-    <div className="relative mb-7 last:mb-0">
-      <div className={`absolute -left-[22px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-[#080C10] ${dotColor} shadow-[0_0_8px_rgba(0,0,0,0.3)]`} />
-      <div className="text-[10px] font-mono text-gray-500 mb-1">{period}</div>
-      <h3 className="text-sm font-semibold mb-0.5">{title}</h3>
-      <div className="text-xs font-mono text-blue-400 mb-2">{company}</div>
-      <ul className="space-y-0.5">
-        {items.map((it, i) => (
-          <li key={i} className="text-xs text-gray-400 pl-3 relative before:content-['›'] before:absolute before:left-0 before:text-gray-600">{it}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function EducationContent() {
-  return (
-    <div>
-      <div className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">academic background</div>
-      <h2 className="text-2xl font-bold tracking-tight mb-1">Education</h2>
-      <p className="text-sm text-gray-400 mb-6">Learn-by-building is the core philosophy.</p>
-      <div className="space-y-3">
-        <div className="bg-[#1a2234] border border-white/10 rounded-xl p-4 flex gap-3 hover:border-blue-400/25 transition">
-          <div className="w-10 h-10 rounded-lg bg-orange-400/10 border border-orange-400/20 flex items-center justify-center"><GraduationCap className="text-orange-400" size={18} /></div>
-          <div><h3 className="text-sm font-semibold">Computer Science & Engineering</h3><div className="text-xs font-mono text-blue-400">Currently Enrolled · Nagaland</div><p className="text-xs text-gray-500">Focus on software engineering, systems design, and AI integration</p></div>
-        </div>
-        <div className="bg-[#1a2234] border border-white/10 rounded-xl p-4 flex gap-3 hover:border-blue-400/25 transition">
-          <div className="w-10 h-10 rounded-lg bg-blue-400/10 border border-blue-400/20 flex items-center justify-center"><FileText className="text-blue-400" size={18} /></div>
-          <div><h3 className="text-sm font-semibold">NBSE Class XII</h3><div className="text-xs font-mono text-blue-400">Nagaland Board of School Education</div><p className="text-xs text-gray-500">Science stream — completed</p></div>
-        </div>
-        <div className="bg-[#1a2234] border border-purple-400/20 rounded-xl p-4 flex gap-3">
-          <div className="w-10 h-10 rounded-lg bg-purple-400/10 border border-purple-400/20 flex items-center justify-center"><Code className="text-purple-400" size={18} /></div>
-          <div><h3 className="text-sm font-semibold">Self-Study Curriculum</h3><div className="text-xs font-mono text-blue-400">Structured Independent Learning</div><p className="text-xs text-gray-500">React Hooks · MongoDB · Full-stack auth patterns · TensorFlow.js · RAG & vector DBs · Production Node.js · DynamoDB single-table design</p></div>
-        </div>
-      </div>
-      <div className="mt-4 p-4 bg-blue-400/5 border border-blue-400/15 rounded-lg text-xs text-gray-400 leading-relaxed">
-        <strong className="text-gray-200">Philosophy:</strong> Every major skill was learned inside a real product — not a tutorial.
-      </div>
-    </div>
-  );
-}
-
-function GalleryContent() {
-  const items = [
-    { icon: <Star size={40} className="opacity-40" />, cap: 'Vizo AI — dashboard', tilt: 2 },
-    { icon: <Zap size={40} className="opacity-40" />, cap: 'Evalyze — grading', tilt: -1 },
-    { icon: <MapPin size={40} className="opacity-40" />, cap: 'Nagaland 🇮🇳', tilt: 1.5 },
-    { icon: <Code size={40} className="opacity-40" />, cap: 'PosturePet skeleton', tilt: -2 },
-    { icon: <Briefcase size={40} className="opacity-40" />, cap: 'The workspace', tilt: 1 },
-    { icon: <Folder size={40} className="opacity-40" />, cap: 'MorungX dashboard', tilt: -1.5 },
-  ];
-  return (
-    <div>
-      <div className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">build log</div>
-      <h2 className="text-2xl font-bold tracking-tight mb-1">The Workshop</h2>
-      <p className="text-sm text-gray-400 mb-6">Screenshots from products I've built.</p>
-      <div className="grid grid-cols-3 gap-3">
-        {items.map((item, i) => (
-          <div key={i} className="bg-[#1a2234] border border-white/10 rounded-lg p-2 pb-6 shadow-lg hover:rotate-[var(--tilt)] hover:scale-105 transition" style={{ '--tilt': `${item.tilt}deg` } as React.CSSProperties}>
-            <div className="aspect-square rounded bg-[#232f46] flex items-center justify-center">{item.icon}</div>
-            <p className="text-[10px] font-mono text-gray-500 text-center mt-2">{item.cap}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function AchievementsContent() {
-  const wins = [
-    { icon: <Trophy size={18} className="text-yellow-400" />, title: 'Launched Vizo AI — Solo', desc: 'Full AI tutoring platform built and shipped end-to-end.' },
-    { icon: <Trophy size={18} className="text-yellow-400" />, title: 'Devpost Hackathon', desc: 'Built Evalyze under time constraints, live in production.' },
-    { icon: <Briefcase size={18} className="text-yellow-400" />, title: 'Registered Sole Proprietorship', desc: 'GST, Udyam, Razorpay Route, and banking — independently.' },
-    { icon: <Zap size={18} className="text-yellow-400" />, title: '6+ Production Products', desc: 'All shipped and deployed solo.' },
-  ];
-  return (
-    <div>
-      <div className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">milestones</div>
-      <h2 className="text-2xl font-bold tracking-tight mb-1">Achievements</h2>
-      <p className="text-sm text-gray-400 mb-6">Shipped, registered, and built from Northeast India.</p>
-      <div className="space-y-3">
-        {wins.map((w, i) => (
-          <div key={i} className="bg-[#1a2234] border border-white/10 rounded-xl p-4 flex gap-3 hover:border-yellow-400/20 transition">
-            <div className="w-9 h-9 rounded-lg bg-yellow-400/10 border border-yellow-400/15 flex items-center justify-center shrink-0">{w.icon}</div>
-            <div><h3 className="text-sm font-semibold">{w.title}</h3><p className="text-xs text-gray-400">{w.desc}</p></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ContactContent() {
-  return (
-    <div>
-      <div className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">get in touch</div>
-      <h2 className="text-2xl font-bold tracking-tight mb-1">Let's Connect</h2>
-      <div className="bg-blue-400/5 border border-blue-400/20 rounded-xl p-5 mb-4">
-        <h3 className="text-lg font-bold">Noba</h3>
-        <div className="text-xs font-mono text-blue-400 mb-2">// Solo Developer & Founder · Edx Morung · Nagaland, India 🇮🇳</div>
-        <p className="text-sm text-gray-400">Full-stack developer building AI-powered edtech and community tools. Open to frontend and full-stack internship opportunities — remote-friendly.</p>
-      </div>
-      <div className="space-y-2">
-        <a href="mailto:hello@noba.dev" className="flex items-center gap-3 p-3 rounded-lg bg-[#1a2234] border border-white/10 hover:border-blue-400/30 text-gray-300 text-sm">
-          <Mail size={16} className="text-blue-400" /> hello@noba.dev
-        </a>
-        <a href="#" className="flex items-center gap-3 p-3 rounded-lg bg-[#1a2234] border border-white/10 hover:border-blue-400/30 text-gray-300 text-sm">
-          <Code size={16} className="text-purple-400" /> github.com/noba
-        </a>
-      </div>
-    </div>
-  );
-}
-
-function ResumeContent() {
-  return (
-    <div>
-      <div className="text-xs font-mono text-blue-400 uppercase tracking-widest mb-1">curriculum vitae</div>
-      <h2 className="text-2xl font-bold tracking-tight mb-1">Resume</h2>
-      <p className="text-sm text-gray-400 mb-6">Available in Frontend and Full-Stack variants. Crafted in Typst.</p>
-      <div className="bg-[#1a2234] border border-white/10 rounded-xl p-4 font-mono text-xs leading-relaxed mb-4 relative before:absolute before:top-0 before:left-0 before:right-0 before:h-0.5 before:bg-gradient-to-r before:from-blue-400 before:to-purple-500">
-        <span className="text-gray-500">// noba — developer resume</span><br/>
-        <span className="text-blue-400">name</span>         <span className="text-green-400">Noba</span><br/>
-        <span className="text-blue-400">location</span>     <span className="text-orange-400">"Nagaland, India 🇮🇳"</span><br/>
-        <span className="text-blue-400">focus</span>        <span className="text-orange-400">"Full-Stack · AI/ML · Edtech"</span><br/>
-        <span className="text-blue-400">open_to</span>     <span className="text-orange-400">"Frontend & Full-Stack Internships"</span>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <button className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-gray-900 rounded-lg font-semibold text-sm">Download Frontend</button>
-        <button className="flex items-center justify-center gap-2 px-4 py-2 border border-white/10 text-gray-300 rounded-lg font-semibold text-sm">Download Full-Stack</button>
-      </div>
-    </div>
-  );
-}
-
-// ---------- Main Page Component ----------
-export default function DesktopPage() {
-  const [boot, setBoot] = useState(true);
-  const [windows, setWindows] = useState<WindowState[]>([]);
-  const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
-  const [zCounter, setZCounter] = useState(200);
-  const cascadeRef = useRef({ x: 0, y: 0 });
-  const [clock, setClock] = useState('');
-  const [dockDate, setDockDate] = useState('');
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const [wallpaperIndex, setWallpaperIndex] = useState(0);
-  const wallpapers = [
-    'radial-gradient(ellipse 80% 60% at 20% 80%, rgba(79,158,255,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 20%, rgba(167,139,250,0.1) 0%, transparent 55%), linear-gradient(160deg, #080C10 0%, #0B1120 40%, #090D15 100%)',
-    'radial-gradient(ellipse 70% 50% at 30% 70%, rgba(251,146,60,0.1) 0%, transparent 55%), radial-gradient(ellipse 50% 40% at 70% 30%, rgba(61,220,132,0.08) 0%, transparent 50%), linear-gradient(150deg, #0a0f1a 0%, #0d1525 50%, #080c14 100%)',
-    'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(167,139,250,0.1) 0%, transparent 50%), radial-gradient(ellipse 80% 40% at 20% 80%, rgba(79,158,255,0.08) 0%, transparent 50%), linear-gradient(170deg, #090d16 0%, #0e1320 40%, #060a12 100%)',
-  ];
-
-  // Boot timer
-  useEffect(() => {
-    const timer = setTimeout(() => setBoot(false), 1800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Clock
-  useEffect(() => {
-    const update = () => {
-      const n = new Date();
-      const h = n.getHours(), m = n.getMinutes();
-      const ap = h >= 12 ? 'PM' : 'AM', hh = h % 12 || 12, mm = String(m).padStart(2, '0');
-      setClock(`${n.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}  ${hh}:${mm} ${ap}`);
-      setDockDate(n.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }));
-    };
-    update();
-    const id = setInterval(update, 30000);
-    return () => clearInterval(id);
-  }, []);
-
-  // XP & Achievements
-  const [xp, setXp] = useState(0);
-  const [unlockedAchievements, setUnlocked] = useState<Set<string>>(new Set());
-  const [toasts, setToasts] = useState<{ id: number; msg: string; desc: string; emoji: string; xp: number }[]>([]);
-
-  useEffect(() => {
-    const savedXp = parseInt(localStorage.getItem('noba_xp') || '0');
-    const savedAch = JSON.parse(localStorage.getItem('noba_achievements') || '[]');
-    setXp(savedXp);
-    setUnlocked(new Set(savedAch));
-  }, []);
-
-  const addXp = useCallback((amount: number) => {
-    setXp(prev => {
-      const newXp = prev + amount;
-      localStorage.setItem('noba_xp', newXp.toString());
-      return newXp;
-    });
-  }, []);
-
-  const unlockAchievement = useCallback((ach: Achievement, xpReward: number) => {
-    setUnlocked(prev => {
-      if (prev.has(ach.id)) return prev;
-      const next = new Set(prev);
-      next.add(ach.id);
-      localStorage.setItem('noba_achievements', JSON.stringify([...next]));
-      addXp(xpReward);
-      setToasts(t => [...t, { id: Date.now(), msg: ach.title, desc: ach.desc, emoji: ach.emoji, xp: xpReward }]);
-      setTimeout(() => {
-        setToasts(current => current.filter(t => t.id !== Date.now()));
-      }, 3000);
-      return next;
-    });
-  }, [addXp]);
-
-  const getLevel = () => {
-    const levels = [
-      { name: 'Apprentice', min: 0 },
-      { name: 'Explorer', min: 100 },
-      { name: 'Builder', min: 250 },
-      { name: 'Architect', min: 500 },
-      { name: 'Senior Dev', min: 1000 },
-      { name: 'Tech Lead', min: 2000 },
-      { name: 'CTO', min: 4000 },
-    ];
-    let lvl = levels[0];
-    for (let i = levels.length - 1; i >= 0; i--) {
-      if (xp >= levels[i].min) { lvl = levels[i]; break; }
-    }
-    const idx = levels.indexOf(lvl) + 1;
-    return { name: lvl.name, level: idx };
-  };
-
-  const openWindow = (key: string) => {
-    const section = sections[key as keyof typeof sections];
-    if (!section) return;
-    const existing = windows.find(w => w.key === key && !w.minimized);
-    if (existing) {
-      setActiveWindowId(existing.id);
-      return;
-    }
-    const desktopW = window.innerWidth;
-    const desktopH = window.innerHeight - 72;
-    const w = Math.min(800, desktopW - 80);
-    const h = Math.min(600, desktopH - 80);
-    let cx = cascadeRef.current.x;
-    let cy = cascadeRef.current.y;
-    if (cx + w > desktopW - 20) cx = 20;
-    if (cy + h > desktopH - 20) cy = 20;
-    cascadeRef.current = { x: cx + 35, y: cy + 35 };
-    if (cascadeRef.current.x > 180 || cascadeRef.current.y > 160) cascadeRef.current = { x: 0, y: 0 };
-
-    const newZ = zCounter + 1;
-    setZCounter(newZ);
-    const id = `win-${Date.now()}`;
-    const newWin: WindowState = {
-      id,
-      key,
-      title: section.title,
-      crumb: section.crumb,
-      icon: section.icon,
-      content: section.content,
-      position: { x: cx, y: cy },
-      size: { w, h },
-      minimized: false,
-      maximized: false,
-      zIndex: newZ,
-    };
-    setWindows(prev => [...prev, newWin]);
-    setActiveWindowId(id);
-    addXp(30);
-  };
-
-  const closeWindow = (id: string) => {
-    setWindows(prev => prev.filter(w => w.id !== id));
-    if (activeWindowId === id) setActiveWindowId(null);
-  };
-
-  const minimizeWindow = (id: string) => {
-    setWindows(prev => prev.map(w => w.id === id ? { ...w, minimized: true, maximized: false } : w));
-    if (activeWindowId === id) setActiveWindowId(null);
-  };
-
-  const maximizeWindow = (id: string) => {
-    setWindows(prev => prev.map(w => {
-      if (w.id !== id) return w;
-      if (w.maximized) {
-        return { ...w, maximized: false, size: w.prevSize?.w ? { w: w.prevSize.w, h: w.prevSize.h } : w.size, position: w.prevSize?.x ? { x: w.prevSize.x, y: w.prevSize.y } : w.position, prevSize: undefined };
-      } else {
-        return { ...w, maximized: true, prevSize: { w: w.size.w, h: w.size.h, x: w.position.x, y: w.position.y }, size: { w: window.innerWidth, h: window.innerHeight - 72 }, position: { x: 0, y: 0 } };
-      }
-    }));
-  };
-
-  const focusWindow = (id: string) => {
-    setActiveWindowId(id);
-    setZCounter(prev => prev + 1);
-    setWindows(prev => prev.map(w => w.id === id ? { ...w, zIndex: zCounter + 1 } : w));
-  };
-
-  // Context menu
-  useEffect(() => {
-    const handleClick = () => setContextMenu(null);
-    window.addEventListener('click', handleClick);
-    return () => window.removeEventListener('click', handleClick);
-  }, []);
-
-  // Konami code
-  const konamiRef = useRef<string[]>([]);
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      konamiRef.current.push(e.key);
-      konamiRef.current = konamiRef.current.slice(-10);
-      if (konamiRef.current.join(',') === 'ArrowUp,ArrowUp,ArrowDown,ArrowDown,ArrowLeft,ArrowRight,ArrowLeft,ArrowRight,KeyB,KeyA') {
-        unlockAchievement({ id: 'konami', title: 'Konami Code!', desc: 'Secret easter egg 🕹️', emoji: '🕹️' }, 150);
-        document.body.style.filter = 'hue-rotate(180deg)';
-        setTimeout(() => { document.body.style.filter = ''; }, 600);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [unlockAchievement]);
-
-  const level = getLevel();
-
-  return (
-    <div className="h-screen w-screen relative overflow-hidden font-sans">
-      {/* Boot screen */}
-      {boot && (
-        <div className="fixed inset-0 z-[9999] bg-[#080C10] flex flex-col items-center justify-center gap-5 transition-opacity duration-500" style={{ opacity: boot ? 1 : 0 }}>
-          <div className="text-3xl font-bold font-mono bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">noba.dev</div>
-          <div className="text-xs font-mono text-gray-500 tracking-widest">INITIALIZING WORKSPACE</div>
-          <div className="w-40 h-px bg-gray-800 rounded overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-blue-400 to-purple-400 animate-[boot_1.4s_ease-out_forwards]" />
-          </div>
-        </div>
-      )}
-
-      {/* Wallpaper */}
-      <div className="fixed inset-0 z-0" style={{ background: wallpapers[wallpaperIndex] }} />
-      <div className="fixed inset-0 z-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
-
-      {/* Menubar */}
-      <div className="fixed top-0 left-0 right-0 z-[2000] h-9 bg-[#0D1117]/90 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-5">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-blue-400 font-mono text-[13px] font-semibold">
-            <Zap size={14} /> noba.dev
-          </div>
-          <div className="w-px h-4 bg-white/10" />
-          <span className="text-xs font-mono text-gray-400">Edx Morung</span>
-          <div className="w-px h-4 bg-white/10" />
-          <span className="text-xs font-mono text-gray-400">Nagaland, India</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-[11px] font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" /> Lvl {level.level} · {xp} XP
-          </div>
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-400/10 border border-green-400/20 text-green-400 text-[11px] font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Open to Internships
-          </div>
-          <span className="text-xs font-mono text-gray-400">{clock}</span>
-        </div>
-      </div>
-
-      {/* Desktop icons */}
-      <div className="fixed top-9 left-0 right-0 bottom-9 flex flex-col items-center justify-center p-6 z-10">
-        <div className="text-center mb-10 pointer-events-none">
-          <div className="text-[11px] font-mono text-gray-500 uppercase tracking-[0.2em] mb-2">Welcome to my workspace</div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-blue-400 to-purple-400 bg-clip-text text-transparent">Noba</h1>
-          <p className="text-sm font-mono text-gray-400 mt-1">Full-Stack Developer · AI Builder · <span className="text-blue-400">Solo Founder</span></p>
-        </div>
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
-          {Object.entries(sections).map(([key, sec]) => (
-            <div key={key} className="flex flex-col items-center gap-2 p-2 rounded-xl cursor-pointer hover:bg-white/5 transition" onClick={() => openWindow(key)}>
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br shadow-lg flex items-center justify-center relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-xl" />
-                {sec.icon}
-              </div>
-              <span className="text-[10px] text-gray-300 font-medium text-center">{sec.title}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Dock */}
-      <div className="fixed bottom-0 left-0 right-0 z-[2000] h-9 bg-[#0D1117]/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-center gap-5 px-5 text-xs font-mono text-gray-500">
-        <div className="flex items-center gap-1.5 cursor-pointer hover:text-gray-300" onClick={() => openWindow('projects')}><Folder size={12} className="text-blue-400" /> Projects</div>
-        <div className="flex items-center gap-1.5 cursor-pointer hover:text-gray-300" onClick={() => openWindow('skills')}><Code size={12} className="text-green-400" /> Skills</div>
-        <div className="w-px h-4 bg-white/10" />
-        <div className="flex items-center gap-1.5 cursor-pointer hover:text-gray-300" onClick={() => openWindow('experience')}><Briefcase size={12} className="text-purple-400" /> Experience</div>
-        <div className="flex items-center gap-1.5 cursor-pointer hover:text-gray-300" onClick={() => openWindow('contact')}><Mail size={12} className="text-emerald-400" /> Contact</div>
-        <div className="w-px h-4 bg-white/10" />
-        <div className="flex items-center gap-1.5"><MapPin size={12} className="text-gray-500" /> Nagaland 🇮🇳</div>
-        <span>{dockDate}</span>
-      </div>
-
-      {/* Windows */}
-      {windows.map(win => (
-        <Window
-          key={win.id}
-          win={win}
-          active={win.id === activeWindowId}
-          onFocus={() => focusWindow(win.id)}
-          onClose={() => closeWindow(win.id)}
-          onMinimize={() => minimizeWindow(win.id)}
-          onMaximize={() => maximizeWindow(win.id)}
-          onDrag={(x, y) => {
-            setWindows(prev => prev.map(w => w.id === win.id ? { ...w, position: { x, y } } : w));
-          }}
-        />
-      ))}
-
-      {/* Context menu */}
-      {contextMenu && (
-        <div className="fixed z-[3000] bg-[#16202e]/95 backdrop-blur-md border border-white/10 rounded-lg py-1 shadow-2xl min-w-[180px] text-xs text-gray-300" style={{ left: contextMenu.x, top: contextMenu.y }}>
-          <div className="px-4 py-2 hover:bg-blue-400/10 cursor-pointer flex items-center gap-2" onClick={() => { setWallpaperIndex((wallpaperIndex + 1) % wallpapers.length); setContextMenu(null); }}><Image size={14} /> Change Wallpaper</div>
-          <div className="px-4 py-2 hover:bg-blue-400/10 cursor-pointer flex items-center gap-2" onClick={() => { /* show achievements */ setContextMenu(null); }}><Trophy size={14} /> Achievements</div>
-        </div>
-      )}
-      <div className="absolute inset-0 z-0" onContextMenu={e => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY }); }} />
-
-      {/* Toast container */}
-      <div className="fixed top-12 right-4 z-[4000] flex flex-col gap-2 pointer-events-none">
-        {toasts.map(t => (
-          <div key={t.id} className="pointer-events-auto bg-[#16202e]/95 border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-xl backdrop-blur-md animate-in slide-in-from-right">
-            <div className="w-8 h-8 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center text-lg">{t.emoji}</div>
+        {/* ── PROJECTS ─────────────────────────── */}
+        <section className="section" id="projects">
+          <div className="section-header">
             <div>
-              <div className="text-xs font-semibold">{t.msg}</div>
-              <div className="text-[10px] text-gray-500">{t.desc}</div>
+              <p className="label">Portfolio</p>
+              <h2 className="h2" style={{ marginTop: "0.25rem" }}>Projects I&rsquo;ve built</h2>
             </div>
-            <span className="text-[11px] font-mono text-yellow-400 font-semibold ml-auto">+{t.xp} XP</span>
+            <a
+              href="https://github.com/YOUR_USERNAME"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="view-all"
+            >
+              GitHub →
+            </a>
           </div>
-        ))}
+
+          {/* Filter row */}
+          <div className="filter-row">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                className={`filter-btn${activeFilter === f ? " active" : ""}`}
+                onClick={() => setActiveFilter(f)}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+
+          <div className="projects-grid">
+            {filteredProjects.map((p) => {
+              const s = STATUS_STYLES[p.status];
+              return (
+                <a
+                  key={p.id}
+                  href={p.href}
+                  className="proj-card"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="proj-header">
+                    <span className="proj-icon">{p.icon}</span>
+                    <span
+                      className="proj-status-badge"
+                      style={{ background: s.bg, color: s.color }}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                  <p className="proj-name">{p.name}</p>
+                  <p className="proj-desc">{p.desc}</p>
+                  <div className="proj-tags">
+                    {p.tags.map((t) => (
+                      <span key={t} className="ptag">{t}</span>
+                    ))}
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+
+        <hr className="divider" />
+
+        {/* ── EXPERIENCE ───────────────────────── */}
+        <section className="section" id="experience">
+          <p className="label">Background</p>
+          <h2 className="h2" style={{ marginTop: "0.25rem", marginBottom: "1.25rem" }}>
+            Experience
+          </h2>
+          <div className="exp-list">
+            {EXPERIENCE.map((e, i) => (
+              <div key={i} className="exp-item">
+                <div className="exp-icon">{e.icon}</div>
+                <div className="exp-body">
+                  <div className="exp-row">
+                    <span className="exp-title">{e.title}</span>
+                    <span className="exp-period">{e.period}</span>
+                  </div>
+                  <p className="exp-sub">{e.sub}</p>
+                  <p className="exp-desc">{e.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <hr className="divider" />
+
+        {/* ── CTA BANNER ───────────────────────── */}
+        <section className="section" style={{ textAlign: "center" }}>
+          <div className="cta-card">
+            <p className="label">Get started</p>
+            <h2 className="h2" style={{ marginTop: "0.375rem" }}>
+              Looking for a frontend or full-stack intern?
+            </h2>
+            <p className="body" style={{ marginTop: "0.5rem", maxWidth: "22rem", margin: "0.5rem auto 0" }}>
+              I bring production experience shipping AI products from scratch, solo —
+              RAG pipelines, real billing, and mobile-first UIs.
+            </p>
+            <div className="cta-buttons">
+              <a href="#contact" className="btn-primary">
+                Get in touch →
+              </a>
+              <a
+                href="https://github.com/YOUR_USERNAME"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline"
+              >
+                View GitHub
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <hr className="divider" />
+
+        {/* ── ROADMAP ──────────────────────────── */}
+        <section className="section" id="roadmap">
+          <div className="roadmap-header">
+            <div>
+              <p className="label">Roadmap</p>
+              <h2 className="h2" style={{ marginTop: "0.25rem" }}>What&rsquo;s coming next</h2>
+            </div>
+            <button
+              className="toggle-btn"
+              onClick={() => setShowRoadmap(!showRoadmap)}
+            >
+              {showRoadmap ? "Collapse ▲" : "Expand ▼"}
+            </button>
+          </div>
+
+          {showRoadmap && (
+            <div className="roadmap-grid">
+              {ROADMAP.map((r) => {
+                const st = ROADMAP_STYLES[r.status];
+                return (
+                  <div key={r.title} className="rm-item">
+                    <div className="rm-icon">{r.icon}</div>
+                    <div>
+                      <p className="rm-title">
+                        {r.title}
+                        <span
+                          className="rm-status-badge"
+                          style={{ background: st.bg, color: st.color }}
+                        >
+                          {st.label}
+                        </span>
+                      </p>
+                      <p className="rm-desc">{r.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <hr className="divider" />
+
+        {/* ── CONTACT ──────────────────────────── */}
+        <section className="section" id="contact">
+          <div className="cta-card">
+            <p className="label">Contact</p>
+            <h2 className="h2" style={{ marginTop: "0.375rem" }}>
+              Open to internship opportunities
+            </h2>
+            <p className="body" style={{ marginTop: "0.5rem", maxWidth: "22rem", margin: "0.5rem auto 0" }}>
+              Frontend and full-stack roles. Remote-friendly. Let&rsquo;s build something.
+            </p>
+            <div className="cta-buttons">
+              <a href="mailto:your@email.com" className="btn-primary">
+                Email me →
+              </a>
+              <a
+                href="https://linkedin.com/in/YOUR_USERNAME"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline"
+              >
+                LinkedIn
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FOOTER ───────────────────────────── */}
+        <footer className="footer">
+          <div className="footer-inner">
+            <div className="footer-brand">
+              <div className="footer-brand-icon">📚</div>
+              <span className="footer-brand-name">
+                Noba<span> · Edx Morung</span>
+              </span>
+            </div>
+            <div className="footer-links">
+              {["Projects", "Experience", "Roadmap", "Contact"].map((l) => (
+                <a key={l} href={`#${l.toLowerCase()}`}>{l}</a>
+              ))}
+            </div>
+            <p className="footer-copy">© 2025 Edx Morung</p>
+          </div>
+        </footer>
+
       </div>
-    </div>
-  );
-}
-
-// ---------- Window component ----------
-function Window({ win, active, onFocus, onClose, onMinimize, onMaximize, onDrag }: {
-  win: WindowState;
-  active: boolean;
-  onFocus: () => void;
-  onClose: () => void;
-  onMinimize: () => void;
-  onMaximize: () => void;
-  onDrag: (x: number, y: number) => void;
-}) {
-  const [dragging, setDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0, left: 0, top: 0 });
-  const winRef = useRef<HTMLDivElement>(null);
-
-  if (win.minimized) return null;
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.traffic-lights')) return;
-    if (win.maximized) return;
-    setDragging(true);
-    dragStart.current = { x: e.clientX, y: e.clientY, left: win.position.x, top: win.position.y };
-    e.preventDefault();
-  };
-
-  useEffect(() => {
-    if (!dragging) return;
-    const handleMove = (e: MouseEvent) => {
-      const dx = e.clientX - dragStart.current.x;
-      const dy = e.clientY - dragStart.current.y;
-      onDrag(dragStart.current.left + dx, dragStart.current.top + dy);
-    };
-    const handleUp = () => setDragging(false);
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
-    };
-  }, [dragging, onDrag]);
-
-  return (
-    <div
-      ref={winRef}
-      className={`absolute flex flex-col bg-[#111827]/95 backdrop-blur-xl border ${active ? 'border-blue-400/25 shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_32px_80px_rgba(0,0,0,0.8),0_0_120px_rgba(79,158,255,0.08)]' : 'border-white/10 shadow-xl'} rounded-xl overflow-hidden transition-shadow`}
-      style={{
-        left: win.position.x,
-        top: win.position.y,
-        width: win.size.w,
-        height: win.size.h,
-        zIndex: win.zIndex,
-      }}
-      onMouseDown={onFocus}
-    >
-      {/* Titlebar */}
-      <div className="flex items-center gap-0 px-3 h-10 bg-white/[0.03] border-b border-white/10 cursor-grab select-none" onMouseDown={handleMouseDown}>
-        <div className="flex gap-2 mr-2 traffic-lights">
-          <button onClick={onClose} className="w-3 h-3 rounded-full bg-red-500 hover:brightness-110 flex items-center justify-center"><X size={8} className="text-black/50" /></button>
-          <button onClick={onMinimize} className="w-3 h-3 rounded-full bg-yellow-500 hover:brightness-110 flex items-center justify-center"><Minus size={8} className="text-black/50" /></button>
-          <button onClick={onMaximize} className="w-3 h-3 rounded-full bg-green-500 hover:brightness-110 flex items-center justify-center"><Square size={8} className="text-black/50" /></button>
-        </div>
-        <span className="text-xs font-mono text-gray-400">{win.title}</span>
-        <span className="ml-auto text-[10px] font-mono text-gray-600">{win.crumb}</span>
-      </div>
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto p-6 text-sm">
-        {win.content}
-      </div>
-    </div>
+    </>
   );
 }
