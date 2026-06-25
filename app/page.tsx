@@ -208,6 +208,21 @@ export default function Page() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
+  // ---- Typewriter headline data ----
+  const heroTextItems = [
+    { text: "Hi," },
+    { text: "I’m" },
+    { text: "Noba" },
+    { text: "—", br: true },
+    { text: "Building" },
+    { text: "AI" },
+    { text: "products", br: true },
+    { text: "from" },
+    { text: "Northeast", em: true },
+    { text: "India,", em: true, br: true },
+    { text: "solo." },
+  ];
+
   return (
     <>
       <style>{`
@@ -342,6 +357,27 @@ export default function Page() {
           background: var(--amber);
           display: inline-block;
           flex-shrink: 0;
+        }
+
+        /* ── TYPEWRITER ANIMATION ── */
+        @keyframes typeWord {
+          0% { opacity: 0; transform: translateY(6px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .type-word {
+          display: inline-block;
+          opacity: 0;
+          animation: typeWord 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        .cursor-blink {
+          display: inline-block;
+          margin-left: 0.125rem;
+          font-weight: 300;
+          animation: blink 1s step-end infinite;
         }
 
         /* ── HERO ── */
@@ -1174,9 +1210,20 @@ export default function Page() {
               <div>
                 <p className="hero-kicker">Est. 2023 · Edx Morung</p>
                 <h1 className="hero-headline">
-                  Building AI products<br />
-                  from <em>Northeast India,</em><br />
-                  solo.
+                  {heroTextItems.map((item, i) => {
+                    const Tag = item.em ? "em" : "span";
+                    return (
+                      <Tag
+                        key={i}
+                        className="type-word"
+                        style={{ animationDelay: `${i * 0.15}s` }}
+                      >
+                        {item.text}
+                        {item.br ? null : " "}
+                      </Tag>
+                    );
+                  })}
+                  <span className="cursor-blink" aria-hidden="true">|</span>
                 </h1>
                 <p className="hero-lede">
                   I&rsquo;m a self-taught developer and founder. I build real AI products —
@@ -1373,7 +1420,6 @@ export default function Page() {
                   </div>
                   <div className="proj-icon-row">
                     <div className="proj-icon-img">
-                      {/* Actual project icon — replace with your own images at /public/images/... */}
                       <Image
                         src={p.image}
                         alt={p.name}
@@ -1415,7 +1461,6 @@ export default function Page() {
             {FIELD_NOTES.map((note, i) => (
               <a key={i} href="#" className="note-card">
                 <div className="note-img-wrap">
-                  {/* Actual field note image — replace with your own images at /public/images/build-*.jpg */}
                   <Image
                     src={note.img}
                     alt={note.title}
